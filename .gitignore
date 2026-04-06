@@ -5,6 +5,7 @@ dist/
 .vscode/
 .playwright-cli/
 output/
+skills.md
 *.log
 .deploy/
 *.tsbuildinfo
