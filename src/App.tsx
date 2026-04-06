@@ -195,9 +195,11 @@ export default function App() {
           animate="visible"
           variants={reveal}
         >
-          <motion.p className="eyebrow" variants={reveal}>
-            FearLab // HKUST(GZ)
-          </motion.p>
+          <motion.div className="eyebrow" variants={reveal}>
+            <span className="eyebrow__brand">FearLab</span>
+            <span className="eyebrow__divider" aria-hidden="true" />
+            <span className="eyebrow__meta">HKUST(GZ)</span>
+          </motion.div>
           <motion.h1 className="headline" variants={reveal}>
             Website under construction.
           </motion.h1>

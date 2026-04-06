@@ -123,9 +123,9 @@ button {
   padding: 1.2rem clamp(1rem, 4vw, 2.5rem) 0;
 }
 
-.eyebrow,
 .theme-toggle__chip,
-.status-pill {
+.status-pill,
+.eyebrow__meta {
   font-family: 'IBM Plex Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -189,9 +189,44 @@ button {
 }
 
 .eyebrow {
-  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.2rem;
+}
+
+.eyebrow__brand {
+  display: inline-block;
+  font-size: clamp(1.35rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.96;
+  color: var(--text);
+  text-shadow: 0 0 28px color-mix(in srgb, var(--glow) 48%, transparent);
+}
+
+.eyebrow__divider {
+  width: clamp(2rem, 7vw, 4.6rem);
+  height: 1px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 72%, transparent), color-mix(in srgb, var(--accent) 12%, transparent));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.eyebrow__meta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.78rem 0.32rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-strong) 76%, transparent);
   color: var(--accent);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--bg) 20%, transparent);
 }
 
 .headline {
@@ -580,6 +615,25 @@ button {
   .theme-toggle {
     margin-left: auto;
     padding-inline: 0.5rem 0.34rem;
+  }
+
+  .eyebrow {
+    gap: 0.62rem;
+    margin-bottom: 1rem;
+  }
+
+  .eyebrow__brand {
+    font-size: clamp(1.16rem, 7vw, 1.56rem);
+  }
+
+  .eyebrow__divider {
+    width: 1.6rem;
+  }
+
+  .eyebrow__meta {
+    min-height: 1.75rem;
+    padding: 0.28rem 0.58rem 0.24rem 0.7rem;
+    font-size: 0.58rem;
   }
 
   .headline {
