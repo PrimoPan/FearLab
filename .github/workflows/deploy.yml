@@ -1,0 +1,255 @@
+name: Deploy FearLab website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fearlab-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      REMOTE_ARCHIVE_PATH: /home/ubuntu/fearlab-site-src.tar.gz
+      SOURCE_DIR: /home/ubuntu/fearlab-site-src
+      SITE_ROOT: /var/www/fearlab/current
+      NGINX_SITE: /etc/nginx/sites-available/fearlab.conf
+      DOMAIN: fearlab.space
+      WWW_DOMAIN: www.fearlab.space
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run check
+
+      - name: Build site
+        run: npm run build
+
+      - name: Create deploy archive
+        run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/fearlab-site-src.tar.gz"
+          COPYFILE_DISABLE=1 tar \
+            --exclude=".git" \
+            --exclude="node_modules" \
+            --exclude="dist" \
+            --exclude=".deploy" \
+            --exclude=".playwright-cli" \
+            --exclude="output" \
+            --exclude="skills.md" \
+            --exclude="deploy" \
+            --exclude="scripts-local" \
+            -czf "$ARCHIVE_PATH" \
+            .
+          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
+
+      - name: Prepare remote deploy script
+        run: |
+          REMOTE_SCRIPT_PATH="$RUNNER_TEMP/fearlab-remote-build.sh"
+          cat > "$REMOTE_SCRIPT_PATH" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          SSL_CERT_PATH=""
+          SSL_KEY_PATH=""
+          DEFAULT_SSL_CERT_PATH="/etc/ssl/fearlab/origin.crt"
+          DEFAULT_SSL_KEY_PATH="/etc/ssl/fearlab/origin.key"
+
+          if [[ -f "$DEFAULT_SSL_CERT_PATH" ]]; then
+            SSL_CERT_PATH="$DEFAULT_SSL_CERT_PATH"
+          fi
+
+          if [[ -f "$DEFAULT_SSL_KEY_PATH" ]]; then
+            SSL_KEY_PATH="$DEFAULT_SSL_KEY_PATH"
+          fi
+
+          require_command() {
+            command -v "$1" >/dev/null 2>&1
+          }
+
+          if ! sudo -n true >/dev/null 2>&1; then
+            echo "Passwordless sudo is required for remote deployment." >&2
+            exit 1
+          fi
+
+          if ! require_command node || [[ "$(node -v)" != v22.* ]]; then
+            sudo apt-get update
+            sudo apt-get install -y ca-certificates curl gnupg
+            sudo mkdir -p /etc/apt/keyrings
+            sudo rm -f /etc/apt/keyrings/nodesource.gpg
+            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+              | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
+              | sudo tee /etc/apt/sources.list.d/nodesource.list >/dev/null
+            sudo apt-get update
+            sudo apt-get install -y nodejs
+          fi
+
+          if ! require_command nginx; then
+            sudo apt-get update
+            sudo apt-get install -y nginx
+          fi
+
+          rm -rf "$SOURCE_DIR"
+          mkdir -p "$SOURCE_DIR"
+          tar -xzf "$ARCHIVE_PATH" -C "$SOURCE_DIR"
+
+          cd "$SOURCE_DIR"
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            npm install
+          fi
+          npm run build
+
+          sudo mkdir -p "$SITE_ROOT"
+          sudo find "$SITE_ROOT" -mindepth 1 -delete
+          sudo cp -a "$SOURCE_DIR/dist/." "$SITE_ROOT/"
+          sudo chown -R www-data:www-data "$(dirname "$SITE_ROOT")"
+
+          if [[ -n "$SSL_CERT_PATH" && -n "$SSL_KEY_PATH" ]]; then
+            HTTP_BEHAVIOR="    return 301 https://${DOMAIN}\$request_uri;"
+            SSL_BLOCK=$(cat <<EOF
+          server {
+              listen 443 ssl http2;
+              listen [::]:443 ssl http2;
+              server_name ${DOMAIN} ${WWW_DOMAIN};
+
+              ssl_certificate ${SSL_CERT_PATH};
+              ssl_certificate_key ${SSL_KEY_PATH};
+              ssl_protocols TLSv1.2 TLSv1.3;
+              ssl_ciphers HIGH:!aNULL:!MD5;
+
+              if (\$host = ${WWW_DOMAIN}) {
+                  return 301 https://${DOMAIN}\$request_uri;
+              }
+
+              root ${SITE_ROOT};
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          }
+          EOF
+            )
+          else
+            HTTP_BEHAVIOR=$(cat <<EOF
+              if (\$host = ${WWW_DOMAIN}) {
+                  return 301 http://${DOMAIN}\$request_uri;
+              }
+
+              root ${SITE_ROOT};
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          EOF
+            )
+            SSL_BLOCK=""
+          fi
+
+          sudo tee "$NGINX_SITE" >/dev/null <<EOF
+          server {
+              listen 3001 default_server;
+              listen [::]:3001 default_server;
+              server_name _;
+
+              root ${SITE_ROOT};
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+          }
+
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name ${DOMAIN} ${WWW_DOMAIN};
+
+          ${HTTP_BEHAVIOR}
+          }
+
+          ${SSL_BLOCK}
+          EOF
+
+          sudo ln -sfn "$NGINX_SITE" /etc/nginx/sites-enabled/fearlab.conf
+          if [[ -f /etc/nginx/sites-enabled/default ]]; then
+            sudo rm -f /etc/nginx/sites-enabled/default
+          fi
+
+          sudo nginx -t
+          sudo systemctl enable nginx
+          sudo systemctl restart nginx
+          SCRIPT
+          chmod +x "$REMOTE_SCRIPT_PATH"
+          echo "REMOTE_SCRIPT_PATH=$REMOTE_SCRIPT_PATH" >> "$GITHUB_ENV"
+
+      - name: Set up SSH credentials
+        env:
+          FEARLAB_HOST: ${{ secrets.FEARLAB_HOST }}
+          FEARLAB_PORT: ${{ secrets.FEARLAB_PORT }}
+          FEARLAB_SSH_KEY: ${{ secrets.FEARLAB_SSH_KEY }}
+          FEARLAB_USER: ${{ secrets.FEARLAB_USER }}
+        run: |
+          if [ -z "$FEARLAB_HOST" ] || [ -z "$FEARLAB_USER" ] || [ -z "$FEARLAB_SSH_KEY" ]; then
+            echo "Missing FEARLAB_HOST, FEARLAB_USER, or FEARLAB_SSH_KEY secret." >&2
+            exit 1
+          fi
+
+          PORT="${FEARLAB_PORT:-22}"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          printf '%s\n' "$FEARLAB_SSH_KEY" > ~/.ssh/fearlab_deploy
+          chmod 600 ~/.ssh/fearlab_deploy
+          ssh-keyscan -p "$PORT" -H "$FEARLAB_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload deploy files
+        env:
+          REMOTE_HOST: ${{ secrets.FEARLAB_HOST }}
+          REMOTE_USER: ${{ secrets.FEARLAB_USER }}
+          REMOTE_PORT: ${{ secrets.FEARLAB_PORT }}
+          SSH_KEY_PATH: /home/runner/.ssh/fearlab_deploy
+          REMOTE_SCRIPT_TARGET: /home/ubuntu/fearlab-remote-build.sh
+        run: |
+          PORT="${REMOTE_PORT:-22}"
+          TARGET="${REMOTE_USER}@${REMOTE_HOST}"
+
+          scp -i "$SSH_KEY_PATH" -o IdentitiesOnly=yes -P "$PORT" "$ARCHIVE_PATH" "${TARGET}:${REMOTE_ARCHIVE_PATH}"
+          scp -i "$SSH_KEY_PATH" -o IdentitiesOnly=yes -P "$PORT" "$REMOTE_SCRIPT_PATH" "${TARGET}:${REMOTE_SCRIPT_TARGET}"
+
+      - name: Deploy to server
+        env:
+          REMOTE_HOST: ${{ secrets.FEARLAB_HOST }}
+          REMOTE_USER: ${{ secrets.FEARLAB_USER }}
+          REMOTE_PORT: ${{ secrets.FEARLAB_PORT }}
+          SSH_KEY_PATH: /home/runner/.ssh/fearlab_deploy
+          REMOTE_SCRIPT_TARGET: /home/ubuntu/fearlab-remote-build.sh
+        run: |
+          PORT="${REMOTE_PORT:-22}"
+          TARGET="${REMOTE_USER}@${REMOTE_HOST}"
+          ssh -i "$SSH_KEY_PATH" -o IdentitiesOnly=yes -p "$PORT" "$TARGET" \
+            "chmod +x '${REMOTE_SCRIPT_TARGET}' && ARCHIVE_PATH='${REMOTE_ARCHIVE_PATH}' SOURCE_DIR='${SOURCE_DIR}' SITE_ROOT='${SITE_ROOT}' NGINX_SITE='${NGINX_SITE}' DOMAIN='${DOMAIN}' WWW_DOMAIN='${WWW_DOMAIN}' '${REMOTE_SCRIPT_TARGET}'"

@@ -6,6 +6,8 @@ dist/
 .playwright-cli/
 output/
 skills.md
+deploy/
+scripts-local/
 *.log
 .deploy/
 *.tsbuildinfo

@@ -41,22 +41,22 @@ The production output is written to `dist/`.
 
 - `src/App.tsx`: page content and animation structure
 - `src/styles.css`: visual system, responsive layout, and illustration styling
-- `scripts/upload_source.sh`: uploads the source archive to the server
-- `scripts/run_remote_build.sh`: uploads source and triggers the remote build
-- `scripts/remote_build.sh`: installs dependencies, builds, publishes static assets, and reloads Nginx
+- `.github/workflows/deploy.yml`: deploys automatically when `main` is updated
 
 ## Deployment
 
-The current deployment flow is script-based:
+Deployment is handled by GitHub Actions only. Any push to `main` will install dependencies, run the type check, build the site, upload the deploy archive to the server, and execute the remote publish routine over SSH.
 
-```bash
-./scripts/run_remote_build.sh
-```
+Required GitHub repository secrets:
 
-This uploads the source archive, runs the build on the server, publishes `dist/`, and reloads Nginx.
+- `FEARLAB_HOST`: deployment host
+- `FEARLAB_USER`: SSH user for deployment
+- `FEARLAB_SSH_KEY`: private SSH key used by GitHub Actions
+- `FEARLAB_PORT`: optional SSH port if not `22`
+
+The deploy user must support passwordless `sudo`, because the remote deployment routine updates packages, publishes files, and reloads Nginx.
 
 ## Notes
 
 - This repo is static for now.
 - Playwright artifacts should stay under `output/playwright/`.
-- CI/CD should be improved later; the current scripts are a temporary deployment path.
