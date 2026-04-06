@@ -1,0 +1,26 @@
+{
+  "name": "fearlab-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3001",
+    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3001",
+    "check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.6",
+    "@fontsource/space-grotesk": "^5.2.6",
+    "framer-motion": "^12.6.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.19"
+  }
+}
