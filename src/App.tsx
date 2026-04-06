@@ -196,7 +196,7 @@ export default function App() {
           variants={reveal}
         >
           <motion.div className="eyebrow" variants={reveal}>
-            <span className="eyebrow__brand">FearLab</span>
+            <span className="eyebrow__brand">FEAR Lab</span>
             <span className="eyebrow__divider" aria-hidden="true" />
             <span className="eyebrow__meta">HKUST(GZ)</span>
           </motion.div>
@@ -204,7 +204,7 @@ export default function App() {
             Website under construction.
           </motion.h1>
           <motion.p className="lead" variants={reveal}>
-            FearLab is a human-computer interaction laboratory at The Hong Kong
+            FEAR Lab is a human-computer interaction laboratory at The Hong Kong
             University of Science and Technology (Guangzhou), led by{' '}
             <a
               className="inline-link"
