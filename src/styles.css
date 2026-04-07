@@ -862,6 +862,8 @@ img {
 .person-card {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  width: 100%;
   height: 100%;
   text-decoration: none;
   border: 1px solid var(--line);
@@ -888,6 +890,7 @@ img {
 
 .person-card__media {
   position: relative;
+  width: 100%;
   aspect-ratio: 0.82;
   overflow: hidden;
   background: color-mix(in srgb, var(--panel-strong) 84%, transparent);
@@ -958,6 +961,7 @@ img {
 
 .person-card--flat .person-card__body {
   gap: 0.38rem;
+  width: 100%;
   padding: 0.95rem 0.05rem 0;
 }
 
