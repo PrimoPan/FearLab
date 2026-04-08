@@ -82,7 +82,6 @@ export const constructionCopy: Record<'projects' | 'publications' | 'contact', C
 
 export const newsMoments = [
   'Fresh FEAR Lab work is heading into the CHI 2026 conversation.',
-  'This is the site’s current highlight, so it stays visible directly in the top bar.',
   'If you will be at CHI too, come meet the lab and say hello.'
 ] as const
 

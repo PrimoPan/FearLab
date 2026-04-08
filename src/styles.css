@@ -276,6 +276,15 @@ img {
   box-shadow: 0 16px 38px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
+.site-nav__link--featured.site-nav__link--active {
+  color: var(--bg);
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  background: var(--accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, white 12%, transparent),
+    0 14px 30px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
 .site-nav__link--active .site-nav__feature {
   background: color-mix(in srgb, white 22%, transparent);
   color: color-mix(in srgb, var(--bg) 82%, black 18%);
