@@ -37,11 +37,65 @@ npm run build
 
 The production output is written to `dist/`.
 
-## Important files
+## Project structure
 
-- `src/App.tsx`: page content and animation structure
-- `src/styles.css`: visual system, responsive layout, and illustration styling
-- `.github/workflows/deploy.yml`: deploys automatically when `main` is updated
+```text
+.
+├── assets/
+│   └── People/
+│       ├── id/                 # directory-card portraits
+│       └── photos/life/        # full-screen people detail photography
+├── src/
+│   ├── app/
+│   │   ├── AppShell.tsx        # route shell, title policy, theme persistence
+│   │   └── theme.ts            # theme detection and toggling helpers
+│   ├── components/
+│   │   ├── construction/       # under-construction illustration pieces
+│   │   ├── home/               # homepage banner components
+│   │   ├── layout/             # shared site header/navigation
+│   │   ├── news/               # CHI'26 news hero, cards, and sections
+│   │   └── people/             # people directory and profile-detail building blocks
+│   ├── content/
+│   │   └── siteContent.ts      # nav items and page copy/config
+│   ├── data/
+│   │   └── people.ts           # people records, photos, crop/brightness settings
+│   ├── hooks/
+│   │   └── useMediaQuery.ts    # responsive behavior helper
+│   ├── lib/
+│   │   └── animations.ts       # shared motion variants and easing
+│   ├── pages/
+│   │   ├── HomePage.tsx
+│   │   ├── NewsPage.tsx
+│   │   ├── PeoplePage.tsx
+│   │   ├── ConstructionPage.tsx
+│   │   └── PersonRedirectPage.tsx
+│   ├── App.tsx                 # BrowserRouter entry only
+│   ├── main.tsx                # React mount
+│   └── styles.css              # global visual system and responsive layout rules
+├── .github/workflows/deploy.yml
+└── README.md
+```
+
+## Shared project rules
+
+### Commit convention
+
+- Commit format: `YYYY-MM-DD HH:MM HKT <summary>`.
+- Use Hong Kong time, not local machine time from another timezone.
+- Keep the summary concise and specific to the user-facing change.
+- Run `npm run build` before commit/push whenever practical.
+
+### Current site behavior
+
+- Browser tab title stays fixed as `FEAR Lab | HKUST(GZ)` on every route.
+- The site defaults to dark mode; light mode is opt-in only after a user click.
+- `News` is the featured navigation item and currently highlights CHI'26.
+- On mobile, the active top-nav tab must stay visible when horizontally scrolled.
+- In the people directory, mobile portrait cards should render at consistent sizes.
+- In people detail pages on desktop, the top `People` badge and bottom back button should fit within the same viewport whenever possible.
+- Lifestyle photos use per-person crop/brightness tuning from `src/data/people.ts`.
+- The CHI'26 page should follow the site’s current visual language rather than reproducing poster artwork literally.
+- Introduction-card scrollbars should remain inset and visually integrated with the glass panel.
 
 ## Deployment
 
