@@ -1,17 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { SiteHeader } from '../components/layout/SiteHeader'
 import { constructionCopy } from '../content/siteContent'
+import { useAutoHideHeader } from '../hooks/useAutoHideHeader'
 import { ConstructionPage } from '../pages/ConstructionPage'
 import { HomePage } from '../pages/HomePage'
 import { NewsPage } from '../pages/NewsPage'
 import { PeoplePage } from '../pages/PeoplePage'
 import { PersonRedirectPage } from '../pages/PersonRedirectPage'
+import { PublicationsPage } from '../pages/PublicationsPage'
 import { detectInitialTheme, themeStorageKey, toggleTheme, type Theme } from './theme'
 
 export function AppShell() {
   const [theme, setTheme] = useState<Theme>(detectInitialTheme)
   const location = useLocation()
+  const header = useAutoHideHeader(location.pathname)
+  const isPublicationsPage = location.pathname === '/publications'
+  const shellStyle = header.height
+    ? ({ '--site-header-height': `${header.height}px` } as CSSProperties)
+    : undefined
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -27,20 +34,30 @@ export function AppShell() {
   }, [location.pathname, location.search])
 
   return (
-    <main className="page-shell">
+    <main
+      className={`page-shell${header.isVisible ? '' : ' page-shell--header-hidden'}${
+        isPublicationsPage ? ' page-shell--publications' : ''
+      }`}
+      style={shellStyle}
+    >
       <div className="ambient ambient-a" aria-hidden="true" />
       <div className="ambient ambient-b" aria-hidden="true" />
 
-      <SiteHeader theme={theme} onToggleTheme={() => setTheme(toggleTheme)} />
+      <SiteHeader
+        theme={theme}
+        onToggleTheme={() => setTheme(toggleTheme)}
+        isVisible={header.isVisible}
+        isScrolled={header.isScrolled}
+        headerRef={header.headerRef}
+        onFocusCapture={header.handleFocusCapture}
+        onBlurCapture={header.handleBlurCapture}
+      />
 
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/projects" element={<ConstructionPage {...constructionCopy.projects} />} />
-        <Route
-          path="/publications"
-          element={<ConstructionPage {...constructionCopy.publications} />}
-        />
+        <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/people/:slug" element={<PersonRedirectPage />} />
         <Route path="/contact" element={<ConstructionPage {...constructionCopy.contact} />} />

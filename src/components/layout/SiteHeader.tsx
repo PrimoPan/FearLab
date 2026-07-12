@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type FocusEventHandler, type RefObject } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { navItems } from '../../content/siteContent'
 import type { Theme } from '../../app/theme'
@@ -6,6 +6,11 @@ import type { Theme } from '../../app/theme'
 type SiteHeaderProps = {
   theme: Theme
   onToggleTheme: () => void
+  isVisible: boolean
+  isScrolled: boolean
+  headerRef: RefObject<HTMLElement | null>
+  onFocusCapture: FocusEventHandler<HTMLElement>
+  onBlurCapture: FocusEventHandler<HTMLElement>
 }
 
 export function SiteHeader(props: SiteHeaderProps) {
@@ -48,7 +53,14 @@ export function SiteHeader(props: SiteHeaderProps) {
   }, [location.pathname])
 
   return (
-    <header className="site-header">
+    <header
+      ref={props.headerRef}
+      className={`site-header${props.isVisible ? '' : ' site-header--hidden'}${
+        props.isScrolled ? ' site-header--scrolled' : ''
+      }`}
+      onFocusCapture={props.onFocusCapture}
+      onBlurCapture={props.onBlurCapture}
+    >
       <Link className="site-brand" to="/">
         <span className="site-brand__mark">FEAR Lab</span>
         <span className="site-brand__meta">HKUST(GZ)</span>
