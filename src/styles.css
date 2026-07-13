@@ -885,7 +885,7 @@ img {
 
 .publication-year-nav,
 .publication-year-group__header p,
-.publication-entry__meta,
+.publication-entry__meta time,
 .publication-entry__action {
   font-family: 'IBM Plex Mono', monospace;
   text-transform: uppercase;
@@ -1087,16 +1087,117 @@ img {
 }
 
 .publication-entry__body {
+  display: grid;
+  align-content: start;
+  gap: 0.78rem;
   min-width: 0;
+}
+
+.publication-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 1.65rem;
+}
+
+.publication-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-height: 1.62rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 720;
+  letter-spacing: 0.075em;
+  line-height: 1;
+}
+
+.publication-badge--venue {
+  --venue-color: #aab3c7;
+  padding: 0.35rem 0.65rem 0.32rem;
+  border: 1px solid color-mix(in srgb, var(--venue-color) 42%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--venue-color) 14%, var(--panel));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
+  color: color-mix(in srgb, var(--venue-color) 76%, var(--text));
+  text-transform: uppercase;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.publication-badge--venue[data-tone='coral'] {
+  --venue-color: #ff746c;
+}
+
+.publication-badge--venue[data-tone='cyan'] {
+  --venue-color: #5fd2d5;
+}
+
+.publication-badge--venue[data-tone='blue'] {
+  --venue-color: #77a8ff;
+}
+
+.publication-badge--venue[data-tone='violet'] {
+  --venue-color: #b69aff;
+}
+
+.publication-badge--venue[data-tone='green'] {
+  --venue-color: #78c995;
+}
+
+.publication-badge--venue[data-tone='amber'] {
+  --venue-color: #efb95f;
+}
+
+.publication-badge--venue[data-tone='slate'] {
+  --venue-color: #a8b3ca;
+}
+
+.publication-entry:hover .publication-badge--venue,
+.publication-entry:focus-within .publication-badge--venue {
+  border-color: color-mix(in srgb, var(--venue-color) 58%, var(--line));
+  background: color-mix(in srgb, var(--venue-color) 20%, var(--panel));
+  transform: translateY(-1px);
+}
+
+.publication-badge--recognition {
+  padding: 0.35rem 0.62rem 0.32rem;
+  border: 1px solid color-mix(in srgb, #f1c65f 48%, var(--line));
+  border-radius: 999px;
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, #f1c65f 24%, var(--panel)),
+    color-mix(in srgb, #d8982d 13%, var(--panel))
+  );
+  color: color-mix(in srgb, #f7d878 78%, var(--text));
+  text-transform: uppercase;
+}
+
+.publication-badge--nomination {
+  border-color: color-mix(in srgb, #e7a85b 42%, var(--line));
+  background: color-mix(in srgb, #e7a85b 14%, var(--panel));
+  color: color-mix(in srgb, #edbd79 74%, var(--text));
+}
+
+.publication-badge__icon {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0;
 }
 
 .publication-entry__title {
   margin: 0;
   max-width: 34ch;
   color: var(--text);
-  font-size: clamp(1.4rem, 2.3vw, 2rem);
-  line-height: 1.2;
-  letter-spacing: -0.045em;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font-size: clamp(1.48rem, 2.35vw, 2.08rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.028em;
   overflow-wrap: anywhere;
   transition: color 180ms ease;
 }
@@ -1107,7 +1208,7 @@ img {
 }
 
 .publication-entry__authors {
-  margin: 0.95rem 0 0;
+  margin: 0.08rem 0 0;
   color: var(--text-soft);
   font-size: 1.04rem;
   line-height: 1.76;
@@ -1138,19 +1239,26 @@ img {
 .publication-entry__meta {
   display: grid;
   align-content: start;
-  gap: 0.68rem;
+  gap: 0.72rem;
   color: var(--text-soft);
-  font-size: 0.66rem;
-  line-height: 1.68;
+  font-size: 0.86rem;
+  line-height: 1.62;
 }
 
 .publication-entry__meta time {
   color: var(--accent);
+  font-size: 0.66rem;
 }
 
 .publication-entry__meta p {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.publication-entry__venue {
+  max-width: 35ch;
+  color: color-mix(in srgb, var(--text-soft) 92%, var(--text));
+  font-style: italic;
 }
 
 .publication-entry__action {
@@ -2421,11 +2529,11 @@ img {
 
   .publication-entry__title {
     max-width: none;
-    font-size: clamp(1.38rem, 6.8vw, 1.72rem);
+    font-size: clamp(1.45rem, 6.9vw, 1.82rem);
   }
 
   .publication-entry__authors {
-    margin-top: 0.78rem;
+    margin-top: 0;
     font-size: 0.98rem;
     line-height: 1.72;
   }

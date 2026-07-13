@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { people } from '../../data/people'
 import type { PublicationRecord } from '../../data/publications'
 import { reveal } from '../../lib/animations'
+import { PublicationBadges } from './PublicationBadges'
 
 type PublicationEntryProps = {
   publication: PublicationRecord
@@ -32,6 +33,8 @@ export function PublicationEntry({ publication }: PublicationEntryProps) {
       variants={reveal}
     >
       <div className="publication-entry__body">
+        <PublicationBadges publication={publication} />
+
         <h3 id={headingId} className="publication-entry__title">
           {publication.title}
         </h3>
@@ -61,8 +64,8 @@ export function PublicationEntry({ publication }: PublicationEntryProps) {
       </div>
 
       <div className="publication-entry__meta">
-        <time dateTime={String(publication.year)}>{publication.date}</time>
-        <p>{publication.venue}</p>
+        <p className="publication-entry__venue">{publication.venue}</p>
+        <time dateTime={publication.sortDate}>{publication.date}</time>
         <a
           className="publication-entry__action"
           href={publication.articleUrl}

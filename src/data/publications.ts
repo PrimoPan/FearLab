@@ -1,11 +1,29 @@
+import type { PublicationVenueKey } from './publicationVenues'
+
+export type PublicationKind =
+  | 'book-chapter'
+  | 'conference'
+  | 'journal'
+  | 'preprint'
+  | 'thesis'
+
+export type PublicationRecognition = {
+  kind: 'award' | 'nomination'
+  label: string
+}
+
 export type PublicationRecord = {
   id: string
   title: string
   authors: readonly string[]
   year: number
   date: string
+  sortDate: string
+  kind: PublicationKind
+  venueTag: PublicationVenueKey
   venue: string
   articleUrl: string
+  recognitions?: readonly PublicationRecognition[]
 }
 
 export const publications: readonly PublicationRecord[] = [
@@ -26,6 +44,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '13 June 2026',
+    sortDate: '2026-06-13',
+    kind: 'conference',
+    venueTag: 'dis',
     venue: 'Proceedings of the 2026 Designing Interactive Systems Conference',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3800645.3812894'
   },
@@ -44,6 +65,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '8 May 2026',
+    sortDate: '2026-05-08',
+    kind: 'conference',
+    venueTag: 'ieee-cai',
     venue: '2026 IEEE Conference on Artificial Intelligence',
     articleUrl: 'https://ieeexplore.ieee.org/document/11536351/'
   },
@@ -66,6 +90,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '13 April 2026',
+    sortDate: '2026-04-13',
+    kind: 'conference',
+    venueTag: 'chi',
     venue: 'Proceedings of the 2026 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3772318.3791068'
   },
@@ -83,6 +110,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '13 April 2026',
+    sortDate: '2026-04-13',
+    kind: 'conference',
+    venueTag: 'chi',
     venue: 'Proceedings of the 2026 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3772318.3790947'
   },
@@ -99,6 +129,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '13 April 2026',
+    sortDate: '2026-04-13',
+    kind: 'conference',
+    venueTag: 'chi-ea',
     venue:
       'Proceedings of the Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3772363.3778745'
@@ -118,6 +151,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '13 April 2026',
+    sortDate: '2026-04-13',
+    kind: 'conference',
+    venueTag: 'chi-ea',
     venue:
       'Proceedings of the Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3772363.3778774'
@@ -128,6 +164,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Alexandra Kitson', 'Mirjana Prpa'],
     year: 2026,
     date: '21 March 2026',
+    sortDate: '2026-03-21',
+    kind: 'conference',
+    venueTag: 'ieee-vr',
     venue:
       '2026 IEEE Conference on Virtual Reality and 3D User Interfaces Abstracts and Workshops',
     articleUrl: 'https://ieeexplore.ieee.org/document/11489599/'
@@ -156,6 +195,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2026,
     date: '4 February 2026',
+    sortDate: '2026-02-04',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'Research Square preprint',
     articleUrl: 'https://www.researchsquare.com/article/rs-8588902/v1'
   },
@@ -174,6 +216,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2025,
     date: '6 August 2025',
+    sortDate: '2025-08-06',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'arXiv preprint arXiv:2508.04904',
     articleUrl: 'https://arxiv.org/abs/2508.04904'
   },
@@ -184,6 +229,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mengxu Pan', 'Alexandra Kitson', 'Hongyu Wan', 'Mirjana Prpa'],
     year: 2025,
     date: '5 July 2025',
+    sortDate: '2025-07-05',
+    kind: 'conference',
+    venueTag: 'dis',
     venue: 'Proceedings of the 2025 ACM Designing Interactive Systems Conference',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3715336.3735786'
   },
@@ -203,6 +251,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2025,
     date: '2025',
+    sortDate: '2025-01-01',
+    kind: 'conference',
+    venueTag: 'chi',
     venue: 'Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3706598.3713445'
   },
@@ -220,6 +271,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2025,
     date: '21 March 2025',
+    sortDate: '2025-03-21',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'arXiv preprint arXiv:2503.17479',
     articleUrl: 'https://arxiv.org/abs/2503.17479'
   },
@@ -230,6 +284,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Ildar Akhmetov', 'Mirjana Prpa'],
     year: 2025,
     date: '18 February 2025',
+    sortDate: '2025-02-18',
+    kind: 'conference',
+    venueTag: 'sigcse',
     venue:
       'Proceedings of the 56th ACM Technical Symposium on Computer Science Education, Volume 2',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3641555.3705250'
@@ -247,6 +304,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2024,
     date: '11 November 2024',
+    sortDate: '2024-11-11',
+    kind: 'conference',
+    venueTag: 'cscw',
     venue:
       'Companion Publication of the 2024 Conference on Computer-Supported Cooperative Work and Social Computing',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3678884.3681826'
@@ -258,6 +318,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Yiwen Xu', 'Qinyang Hou', 'Hongyu Wan', 'Mirjana Prpa'],
     year: 2024,
     date: '23 September 2024',
+    sortDate: '2024-09-23',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'arXiv preprint arXiv:2409.15623',
     articleUrl: 'https://arxiv.org/abs/2409.15623'
   },
@@ -267,6 +330,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Pengcheng Ding', 'Yedian Cheng', 'Mirjana Prpa'],
     year: 2024,
     date: '23 September 2024',
+    sortDate: '2024-09-23',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'arXiv preprint arXiv:2409.15171',
     articleUrl: 'https://arxiv.org/abs/2409.15171'
   },
@@ -286,6 +352,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2024,
     date: '2024',
+    sortDate: '2024-01-01',
+    kind: 'conference',
+    venueTag: 'interspeech',
     venue: 'Proceedings of Interspeech 2024',
     articleUrl: 'https://www.isca-archive.org/interspeech_2024/mohan24_interspeech.html'
   },
@@ -304,6 +373,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2024,
     date: '29 August 2024',
+    sortDate: '2024-08-29',
+    kind: 'preprint',
+    venueTag: 'preprint',
     venue: 'arXiv preprint arXiv:2408.16465',
     articleUrl: 'https://arxiv.org/abs/2408.16465'
   },
@@ -321,6 +393,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2024,
     date: '11 May 2024',
+    sortDate: '2024-05-11',
+    kind: 'conference',
+    venueTag: 'chi-ea',
     venue:
       'Extended Abstracts of the 2024 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3613905.3651026'
@@ -339,6 +414,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2022,
     date: '28 September 2022',
+    sortDate: '2022-09-28',
+    kind: 'conference',
+    venueTag: 'mobilehci',
     venue:
       'Adjunct Publication of the 24th International Conference on Human-Computer Interaction with Mobile Devices and Services',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3528575.3551428'
@@ -350,6 +428,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa'],
     year: 2020,
     date: '17 August 2020',
+    sortDate: '2020-08-17',
+    kind: 'thesis',
+    venueTag: 'dissertation',
     venue: 'Simon Fraser University',
     articleUrl: 'https://summit.sfu.ca/item/20693'
   },
@@ -360,8 +441,12 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Sarah Fdili-Alaoui', 'Thecla Schiphorst', 'Philippe Pasquier'],
     year: 2020,
     date: '21 April 2020',
+    sortDate: '2020-04-21',
+    kind: 'conference',
+    venueTag: 'chi',
     venue: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems',
-    articleUrl: 'https://dl.acm.org/doi/10.1145/3313831.3376664'
+    articleUrl: 'https://dl.acm.org/doi/10.1145/3313831.3376664',
+    recognitions: [{ kind: 'award', label: 'CHI 2020 Best Paper Award' }]
   },
   {
     id: 'inhaling-and-exhaling',
@@ -375,6 +460,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2020,
     date: '21 April 2020',
+    sortDate: '2020-04-21',
+    kind: 'conference',
+    venueTag: 'chi',
     venue: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3313831.3376183'
   },
@@ -384,6 +472,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Kıvanç Tatar', 'Mirjana Prpa', 'Philippe Pasquier'],
     year: 2019,
     date: '1 December 2019',
+    sortDate: '2019-12-01',
+    kind: 'journal',
+    venueTag: 'leonardo',
     venue: 'Leonardo Music Journal',
     articleUrl: 'https://direct.mit.edu/lmj/article/69852'
   },
@@ -393,6 +484,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Philippe Pasquier', 'Mirjana Prpa'],
     year: 2019,
     date: '2019',
+    sortDate: '2019-01-01',
+    kind: 'conference',
+    venueTag: 'dis-workshop',
     venue: 'First-Person Research Methods in HCI Workshop, DIS 2019',
     articleUrl:
       'https://1stpersonresearch.wordpress.com/wp-content/uploads/2019/05/02-prpa.pdf'
@@ -403,6 +497,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Philippe Pasquier'],
     year: 2019,
     date: '26 May 2019',
+    sortDate: '2019-05-26',
+    kind: 'book-chapter',
+    venueTag: 'book-chapter',
     venue: 'Brain Art: Brain-Computer Interfaces for Artistic Expression',
     articleUrl: 'https://link.springer.com/chapter/10.1007/978-3-030-14323-7_3'
   },
@@ -413,6 +510,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Alexandra Kitson', 'Mirjana Prpa', 'Bernhard E. Riecke'],
     year: 2018,
     date: '3 August 2018',
+    sortDate: '2018-08-03',
+    kind: 'journal',
+    venueTag: 'frontiers',
     venue: 'Frontiers in Psychology',
     articleUrl:
       'https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2018.01354/full'
@@ -431,6 +531,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2018,
     date: '8 June 2018',
+    sortDate: '2018-06-08',
+    kind: 'conference',
+    venueTag: 'dis',
     venue: 'Proceedings of the 2018 Designing Interactive Systems Conference',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3196709.3196765'
   },
@@ -440,6 +543,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Thecla Schiphorst', 'Kıvanç Tatar', 'Philippe Pasquier'],
     year: 2018,
     date: '20 April 2018',
+    sortDate: '2018-04-20',
+    kind: 'conference',
+    venueTag: 'chi-ea',
     venue:
       'Extended Abstracts of the 2018 CHI Conference on Human Factors in Computing Systems',
     articleUrl: 'https://dl.acm.org/doi/10.1145/3170427.3180282'
@@ -451,6 +557,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Kıvanç Tatar', 'Bernhard E. Riecke', 'Philippe Pasquier'],
     year: 2017,
     date: '14 May 2017',
+    sortDate: '2017-05-14',
+    kind: 'conference',
+    venueTag: 'vamr',
     venue: 'International Conference on Virtual, Augmented and Mixed Reality',
     articleUrl: 'https://link.springer.com/chapter/10.1007/978-3-319-57987-0_13'
   },
@@ -468,6 +577,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2016,
     date: '2016',
+    sortDate: '2016-01-01',
+    kind: 'conference',
+    venueTag: 'mindfulness',
     venue: '2nd International Conference on Mindfulness',
     articleUrl:
       'https://www.researchgate.net/publication/301888217_Sonic_Cradle_-_Immersive_interaction_design_combining_breathing-_and_neurofeedback_to_foster_focused_attention_meditation_on_breath'
@@ -479,6 +591,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Karen Anne Cochrane', 'Bernhard E. Riecke'],
     year: 2015,
     date: '24 September 2015',
+    sortDate: '2015-09-24',
+    kind: 'conference',
+    venueTag: 'mindcare',
     venue: 'International Symposium on Pervasive Computing Paradigms for Mental Health',
     articleUrl: 'https://link.springer.com/chapter/10.1007/978-3-319-32270-4_4'
   },
@@ -488,6 +603,9 @@ export const publications: readonly PublicationRecord[] = [
     authors: ['Mirjana Prpa', 'Bernhard E. Riecke', 'Svetozar Miucin'],
     year: 2015,
     date: 'August 2015',
+    sortDate: '2015-08-01',
+    kind: 'conference',
+    venueTag: 'isea',
     venue: 'Proceedings of the 21st International Symposium on Electronic Art',
     articleUrl:
       'https://www.isea-symposium-archives.org/presentation/state-scape-a-brain-as-an-experience-generator/'
@@ -504,6 +622,9 @@ export const publications: readonly PublicationRecord[] = [
     ],
     year: 2014,
     date: '8 August 2014',
+    sortDate: '2014-08-08',
+    kind: 'conference',
+    venueTag: 'sap',
     venue: 'Proceedings of the ACM Symposium on Applied Perception',
     articleUrl: 'https://dl.acm.org/doi/10.1145/2628257.2628360'
   }
