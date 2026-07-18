@@ -20,6 +20,7 @@ export const publicationVenueTags = {
   vamr: { label: 'VAMR', tone: 'cyan' },
   chi: { label: 'CHI', tone: 'coral' },
   'chi-ea': { label: 'CHI EA', tone: 'coral' },
+  'c-and-c': { label: 'C&C', tone: 'violet' },
   dis: { label: 'DIS', tone: 'cyan' },
   frontiers: { label: 'Frontiers', tone: 'amber' },
   'book-chapter': { label: 'Book chapter', tone: 'slate' },

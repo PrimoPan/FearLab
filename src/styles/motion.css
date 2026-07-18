@@ -1,0 +1,86 @@
+@keyframes scroll-dot {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(0.4rem);
+  }
+}
+
+@keyframes scroll-arrow {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translateY(-0.12rem) rotate(45deg);
+  }
+  45% {
+    opacity: 0.92;
+    transform: translateY(0.22rem) rotate(45deg);
+  }
+}
+
+@keyframes build-in {
+  0%,
+  18% {
+    opacity: 0.3;
+    transform: scaleX(0.15);
+  }
+  38%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes arm-sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes cable-drop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.8rem);
+  }
+}
+
+@keyframes cat-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.28rem);
+  }
+}
+
+@keyframes tail-sway {
+  0%,
+  100% {
+    transform: rotate(-48deg);
+  }
+  50% {
+    transform: rotate(-62deg);
+  }
+}
+
+@keyframes cat-look {
+  0%,
+  100% {
+    transform: rotate(15deg) translateY(0);
+  }
+  50% {
+    transform: rotate(11deg) translateY(0.08rem);
+  }
+}

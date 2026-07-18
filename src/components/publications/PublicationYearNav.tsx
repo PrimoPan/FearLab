@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { useEffect, useId, useState, type MouseEvent } from 'react'
 import type { PublicationYearGroup } from '../../lib/publications'
+import { cn } from '../../lib/cn'
+import { publicationLayoutStyles } from './publicationLayoutStyles'
 
 type PublicationYearNavProps = {
   groups: readonly PublicationYearGroup[]
@@ -69,31 +71,39 @@ export function PublicationYearNav({ groups }: PublicationYearNavProps) {
   }
 
   return (
-    <nav className="publication-year-nav" aria-label="Jump to publication year">
-      <span className="publication-year-nav__label">Years</span>
+    <nav
+      className={publicationLayoutStyles.yearNav}
+      aria-label="Jump to publication year"
+      data-publication-year-nav
+    >
+      <span className={publicationLayoutStyles.yearNavLabel}>Years</span>
 
-      <ol className="publication-year-nav__list">
+      <ol className={publicationLayoutStyles.yearNavList}>
         {groups.map((group) => {
           const isActive = group.year === activeYear
 
           return (
             <li key={group.year}>
               <a
+                className={publicationLayoutStyles.yearNavLink}
                 href={`#publications-${group.year}`}
                 aria-current={isActive ? 'location' : undefined}
                 onClick={(event) => handleYearClick(event, group.year)}
               >
                 {isActive && (
                   <motion.span
-                    className="publication-year-nav__active"
+                    className={publicationLayoutStyles.yearNavActive}
                     layoutId="publication-year-active"
                     transition={{ type: 'spring', stiffness: 470, damping: 42 }}
                     aria-hidden="true"
                   />
                 )}
-                <span className="publication-year-nav__year">{group.year}</span>
+                <span className={publicationLayoutStyles.yearNavValue}>{group.year}</span>
                 <span
-                  className="publication-year-nav__count"
+                  className={cn(
+                    publicationLayoutStyles.yearNavCount,
+                    isActive && '[background:color-mix(in_srgb,var(--bg)_13%,transparent)]'
+                  )}
                   aria-label={describeWorkCount(group.publications.length)}
                 >
                   {group.publications.length}
@@ -104,9 +114,10 @@ export function PublicationYearNav({ groups }: PublicationYearNavProps) {
         })}
       </ol>
 
-      <label className="publication-year-nav__compact" htmlFor={selectId}>
+      <label className={publicationLayoutStyles.yearNavCompact} htmlFor={selectId}>
         <span>Browse year</span>
         <select
+          className={publicationLayoutStyles.yearSelect}
           id={selectId}
           value={activeYear}
           onChange={(event) => jumpToYear(Number(event.target.value))}

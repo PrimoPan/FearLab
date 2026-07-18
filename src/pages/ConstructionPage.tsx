@@ -1,26 +1,27 @@
 import { motion } from 'framer-motion'
 import { ConstructionScene } from '../components/construction/ConstructionScene'
+import { constructionClasses } from '../components/construction/constructionClasses'
 import type { ConstructionPageContent } from '../content/siteContent'
 import { reveal } from '../lib/animations'
 
 export function ConstructionPage(props: ConstructionPageContent) {
   return (
-    <section className="page-grid page-grid--secondary">
+    <section className={constructionClasses.page}>
       <motion.div
-        className="hero-copy"
+        className={constructionClasses.hero}
         initial="hidden"
         animate="visible"
         variants={reveal}
       >
-        <motion.div className="eyebrow" variants={reveal}>
-          <span className="eyebrow__meta">{props.kicker}</span>
+        <motion.div className={constructionClasses.eyebrow} variants={reveal}>
+          <span className={constructionClasses.eyebrowMeta}>{props.kicker}</span>
         </motion.div>
 
-        <motion.h1 className="headline headline--secondary" variants={reveal}>
+        <motion.h1 className={constructionClasses.headline} variants={reveal}>
           {props.headline}
         </motion.h1>
 
-        <motion.p className="lead" variants={reveal}>
+        <motion.p className={constructionClasses.lead} variants={reveal}>
           {props.body}
         </motion.p>
       </motion.div>
@@ -28,13 +29,15 @@ export function ConstructionPage(props: ConstructionPageContent) {
       <ConstructionScene />
 
       <motion.ul
-        className="focus-list"
+        className={constructionClasses.focusList}
         initial="hidden"
         animate="visible"
         variants={reveal}
       >
         {props.bullets.map((bullet) => (
-          <li key={bullet}>{bullet}</li>
+          <li className={constructionClasses.focusItem} key={bullet}>
+            {bullet}
+          </li>
         ))}
       </motion.ul>
     </section>

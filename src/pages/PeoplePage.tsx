@@ -6,6 +6,19 @@ import { PeopleDirectoryHero } from '../components/people/PeopleDirectoryHero'
 import { PersonDetailSection } from '../components/people/PersonDetailSection'
 import { people, peopleBySlug, type PersonRecord } from '../data/people'
 import { staggerIn } from '../lib/animations'
+import { cn } from '../lib/cn'
+
+const pageClasses = cn(
+  'relative z-[1] mx-auto pb-16 pt-[clamp(1.6rem,4vw,2.8rem)]',
+  'w-[min(var(--page-max),calc(100%_-_(var(--gutter)_*_2)))]'
+)
+
+const gridClasses = cn(
+  'grid max-w-[1080px] grid-cols-4 gap-x-[1.4rem] gap-y-[1.8rem]',
+  'max-[900px]:grid-cols-3',
+  'max-[700px]:grid-cols-2 max-[700px]:gap-x-4 max-[700px]:gap-y-5',
+  'max-[520px]:max-w-[320px] max-[520px]:grid-cols-1 max-[520px]:gap-[1.1rem]'
+)
 
 export function PeoplePage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -49,11 +62,11 @@ export function PeoplePage() {
   }
 
   return (
-    <section className={`directory-page${selectedPerson ? ' directory-page--detail-open' : ''}`}>
+    <section className={cn(pageClasses, selectedPerson && 'pb-0')}>
       <PeopleDirectoryHero />
 
       <motion.div
-        className="people-grid people-grid--flat"
+        className={gridClasses}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}

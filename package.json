@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "npm@10.9.8",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "npm": ">=10.8.2"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3001",
     "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build",
@@ -15,13 +20,16 @@
     "framer-motion": "^12.6.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^6.30.3"
+    "react-router-dom": "^6.30.4",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^6.0.3",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^5.4.19"
+    "vite": "^8.1.5"
   }
 }

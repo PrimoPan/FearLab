@@ -1,7 +1,9 @@
 export function ConstructionCat() {
   return (
-    <svg className="cat-builder__svg" viewBox="0 0 240 160" aria-hidden="true">
-      <g className="cat-builder__tail-group">
+    <svg className="h-full w-full overflow-visible" viewBox="0 0 240 160" aria-hidden="true">
+      <g
+        className="animate-[tail-sway_2s_ease-in-out_infinite] motion-reduce:animate-none [transform-origin:58px_88px]"
+      >
         <path
           d="M58 88C34 66 38 40 58 22"
           fill="none"
@@ -25,14 +27,14 @@ export function ConstructionCat() {
         />
       </g>
 
-      <g className="cat-builder__back-legs">
+      <g>
         <rect x="74" y="102" width="15" height="39" rx="7.5" fill="var(--cat-grey)" />
         <rect x="98" y="103" width="15" height="38" rx="7.5" fill="var(--cat-grey)" />
         <rect x="70" y="138" width="22" height="7" rx="3.5" fill="var(--cat-grey-dark)" />
         <rect x="94" y="138" width="22" height="7" rx="3.5" fill="var(--cat-grey-dark)" />
       </g>
 
-      <g className="cat-builder__body-group">
+      <g>
         <ellipse cx="108" cy="92" rx="63" ry="38" fill="var(--cat-grey)" />
         <ellipse cx="94" cy="98" rx="32" ry="26" fill="var(--cat-cream)" />
         <path
@@ -45,14 +47,16 @@ export function ConstructionCat() {
         />
       </g>
 
-      <g className="cat-builder__front-legs">
+      <g>
         <rect x="126" y="102" width="15" height="40" rx="7.5" fill="var(--cat-grey)" />
         <rect x="150" y="101" width="15" height="41" rx="7.5" fill="var(--cat-grey)" />
         <rect x="122" y="139" width="22" height="7" rx="3.5" fill="var(--cat-grey-dark)" />
         <rect x="146" y="139" width="22" height="7" rx="3.5" fill="var(--cat-grey-dark)" />
       </g>
 
-      <g className="cat-builder__head-group">
+      <g
+        className="animate-[cat-look_3.6s_ease-in-out_infinite] motion-reduce:animate-none [transform-origin:163px_75px]"
+      >
         <path
           d="M144 56L154 28L165 56"
           fill="var(--cat-grey)"
@@ -109,7 +113,7 @@ export function ConstructionCat() {
         />
       </g>
 
-      <g className="cat-builder__clipboard-group">
+      <g>
         <g transform="translate(193 91) rotate(8)">
           <rect
             x="-18"

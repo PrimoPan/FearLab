@@ -9,7 +9,21 @@ import { NewsPage } from '../pages/NewsPage'
 import { PeoplePage } from '../pages/PeoplePage'
 import { PersonRedirectPage } from '../pages/PersonRedirectPage'
 import { PublicationsPage } from '../pages/PublicationsPage'
+import { cn } from '../lib/cn'
 import { detectInitialTheme, themeStorageKey, toggleTheme, type Theme } from './theme'
+
+const shellClass = cn(
+  'relative min-h-screen overflow-x-clip',
+  '[--site-header-height:var(--site-header-offset)]',
+  '[--sticky-header-offset:var(--site-header-height)]',
+  '[--publication-nav-offset:0px]',
+  'bg-[radial-gradient(circle_at_82%_16%,var(--glow),transparent_26%),linear-gradient(180deg,color-mix(in_srgb,var(--bg-layer)_74%,transparent),var(--bg))]'
+)
+
+const publicationsShellClass = cn(
+  'bg-[radial-gradient(circle_at_82%_8%,color-mix(in_srgb,var(--glow)_88%,transparent),transparent_30rem),radial-gradient(circle_at_8%_42%,color-mix(in_srgb,var(--accent)_10%,transparent),transparent_32rem),linear-gradient(155deg,var(--publication-canvas-start),var(--publication-canvas-end))]',
+  'max-[899px]:[--publication-nav-offset:4.85rem]'
+)
 
 export function AppShell() {
   const [theme, setTheme] = useState<Theme>(detectInitialTheme)
@@ -35,13 +49,24 @@ export function AppShell() {
 
   return (
     <main
-      className={`page-shell${header.isVisible ? '' : ' page-shell--header-hidden'}${
-        isPublicationsPage ? ' page-shell--publications' : ''
-      }`}
+      className={cn(
+        shellClass,
+        !header.isVisible &&
+          '[--sticky-header-offset:0px] [--publication-nav-offset:0px] max-[899px]:[--publication-nav-offset:0px]',
+        isPublicationsPage && publicationsShellClass
+      )}
+      data-page={isPublicationsPage ? 'publications' : 'default'}
+      data-header-visible={header.isVisible}
       style={shellStyle}
     >
-      <div className="ambient ambient-a" aria-hidden="true" />
-      <div className="ambient ambient-b" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute -top-32 -right-28 size-[28rem] rounded-full bg-site-glow opacity-70 blur-[50px]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 -left-40 size-[28rem] rounded-full bg-[color-mix(in_srgb,var(--accent)_24%,transparent)] opacity-70 blur-[50px]"
+        aria-hidden="true"
+      />
 
       <SiteHeader
         theme={theme}

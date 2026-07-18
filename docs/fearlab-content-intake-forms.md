@@ -10,7 +10,7 @@
 
 - News 页面已经存在：`src/pages/NewsPage.tsx`。
 - News 数据目前写在：`src/content/siteContent.ts`，其中有 `chiAcceptedPapers` 和 `chiWorkshops`。
-- Project / Publication 目前还走建设中页面：`src/app/AppShell.tsx` 会把 `/projects` 和 `/publications` 路由到 `ConstructionPage`。
+- Project 目前走建设中页面；Publication 已使用独立页面，并把正式记录按年份维护在 `src/data/publications/`。
 - 现有网站视觉语言偏英文、暗色、简洁、卡片化。表单收集到的内容建议直接要求英文版短文案，中文备注作为内部补充。
 
 ## 推荐工作流

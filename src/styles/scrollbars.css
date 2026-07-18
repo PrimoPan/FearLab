@@ -1,0 +1,35 @@
+@layer components {
+  .people-bio-scroll::-webkit-scrollbar {
+    width: 0.82rem;
+  }
+
+  .people-bio-scroll::-webkit-scrollbar-track {
+    margin-block: 0.42rem;
+    border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel-strong) 42%, transparent);
+  }
+
+  .people-bio-scroll::-webkit-scrollbar-thumb {
+    border: 0.16rem solid transparent;
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 54%, transparent),
+        color-mix(in srgb, var(--accent-strong) 34%, transparent)
+      );
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+
+  .people-bio-scroll::-webkit-scrollbar-thumb:hover {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 68%, transparent),
+        color-mix(in srgb, var(--accent-strong) 46%, transparent)
+      );
+    background-clip: padding-box;
+  }
+}

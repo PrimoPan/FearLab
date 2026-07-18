@@ -1,0 +1,71 @@
+@theme inline {
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --color-site: var(--bg);
+  --color-site-layer: var(--bg-layer);
+  --color-panel: var(--panel);
+  --color-panel-strong: var(--panel-strong);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-ink-soft: var(--text-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-site-glow: var(--glow);
+  --shadow-site: var(--shadow);
+}
+
+:root {
+  --site-header-offset: 5.8rem;
+  --bg: #06070c;
+  --bg-layer: #10131b;
+  --panel: rgba(14, 18, 28, 0.76);
+  --panel-strong: rgba(18, 23, 36, 0.92);
+  --line: rgba(150, 170, 215, 0.16);
+  --text: #f7f8fc;
+  --text-soft: rgba(233, 238, 251, 0.72);
+  --accent: #ffd166;
+  --accent-strong: #ffc245;
+  --glow: rgba(99, 121, 255, 0.22);
+  --publication-canvas-start: #171f38;
+  --publication-canvas-end: #090d18;
+  --publication-nav: rgba(25, 33, 58, 0.88);
+  --publication-nav-highlight: rgba(112, 132, 205, 0.16);
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+  --page-max: 1240px;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --cat-grey: #e29a43;
+  --cat-grey-dark: #c4761f;
+  --cat-cream: #fff0d7;
+  --cat-white: #fffdf8;
+  --cat-ear: #efc3c6;
+  --cat-eye: #b7d25d;
+  --cat-line: #6b5038;
+  --cat-nose: #eea8b6;
+  --cat-clip: #efb24a;
+  --blueprint: #e7f0ff;
+  --blueprint-line: #86a4d6;
+  --cat-stripe: #b85f16;
+}
+
+:root[data-theme='light'] {
+  --bg: #f5f1e8;
+  --bg-layer: #fff8ed;
+  --panel: rgba(255, 253, 248, 0.86);
+  --panel-strong: rgba(255, 251, 244, 0.96);
+  --line: rgba(123, 104, 75, 0.18);
+  --text: #1a1a1d;
+  --text-soft: rgba(47, 41, 37, 0.72);
+  --accent: #c86a1c;
+  --accent-strong: #ef8c2e;
+  --glow: rgba(255, 193, 110, 0.26);
+  --publication-canvas-start: #f6ead8;
+  --publication-canvas-end: #f4f0e9;
+  --publication-nav: rgba(255, 250, 241, 0.9);
+  --publication-nav-highlight: rgba(200, 106, 28, 0.09);
+  --shadow: 0 30px 80px rgba(104, 82, 49, 0.12);
+  --cat-grey: #df9440;
+  --cat-grey-dark: #bc6d1f;
+  --cat-cream: #fff0d8;
+  --cat-line: #684b33;
+  --cat-stripe: #b55b14;
+}

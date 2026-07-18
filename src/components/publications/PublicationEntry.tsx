@@ -4,6 +4,7 @@ import { people } from '../../data/people'
 import type { PublicationRecord } from '../../data/publications'
 import { reveal } from '../../lib/animations'
 import { PublicationBadges } from './PublicationBadges'
+import { publicationEntryStyles } from './publicationEntryStyles'
 
 type PublicationEntryProps = {
   publication: PublicationRecord
@@ -28,18 +29,19 @@ export function PublicationEntry({ publication }: PublicationEntryProps) {
 
   return (
     <motion.article
-      className="publication-entry"
+      className={publicationEntryStyles.article}
+      data-publication-entry={publication.id}
       aria-labelledby={headingId}
       variants={reveal}
     >
-      <div className="publication-entry__body">
+      <div className={publicationEntryStyles.body}>
         <PublicationBadges publication={publication} />
 
-        <h3 id={headingId} className="publication-entry__title">
+        <h3 id={headingId} className={publicationEntryStyles.title}>
           {publication.title}
         </h3>
 
-        <p className="publication-entry__authors">
+        <p className={publicationEntryStyles.authors}>
           {publication.authors.map((author, index) => {
             const personSlug = peopleSlugsByName.get(author)
 
@@ -48,14 +50,14 @@ export function PublicationEntry({ publication }: PublicationEntryProps) {
                 {authorSeparator(index, publication.authors.length)}
                 {personSlug ? (
                   <Link
-                    className="publication-author publication-author--member"
+                    className={publicationEntryStyles.memberAuthor}
                     to={`/people?member=${personSlug}`}
                     aria-label={`Open ${author}'s profile in People`}
                   >
                     {author}
                   </Link>
                 ) : (
-                  <span className="publication-author">{author}</span>
+                  <span className={publicationEntryStyles.author}>{author}</span>
                 )}
               </span>
             )
@@ -63,11 +65,13 @@ export function PublicationEntry({ publication }: PublicationEntryProps) {
         </p>
       </div>
 
-      <div className="publication-entry__meta">
-        <p className="publication-entry__venue">{publication.venue}</p>
-        <time dateTime={publication.sortDate}>{publication.date}</time>
+      <div className={publicationEntryStyles.meta}>
+        <p className={publicationEntryStyles.venue}>{publication.venue}</p>
+        <time className={publicationEntryStyles.date} dateTime={publication.sortDate}>
+          {publication.date}
+        </time>
         <a
-          className="publication-entry__action"
+          className={publicationEntryStyles.action}
           href={publication.articleUrl}
           target="_blank"
           rel="noopener noreferrer"

@@ -1,0 +1,64 @@
+@layer base {
+  :root {
+    font-family: 'Space Grotesk', sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background:
+      radial-gradient(circle at 15% 18%, var(--glow), transparent 28%),
+      linear-gradient(180deg, var(--bg-layer), var(--bg));
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: transparent;
+    color: var(--text);
+    transition:
+      background-color 220ms ease,
+      color 220ms ease;
+  }
+
+  button,
+  a {
+    color: inherit;
+  }
+
+  button {
+    font: inherit;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  @media (max-width: 900px) {
+    :root {
+      --site-header-offset: 8.4rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

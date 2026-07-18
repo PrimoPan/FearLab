@@ -3,6 +3,11 @@ import type {
   PublicationRecognition,
   PublicationRecord
 } from '../../data/publications'
+import { cn } from '../../lib/cn'
+import {
+  publicationEntryStyles,
+  venueToneClasses
+} from './publicationEntryStyles'
 
 type PublicationBadgesProps = {
   publication: PublicationRecord
@@ -13,11 +18,15 @@ function RecognitionBadge({ recognition }: { recognition: PublicationRecognition
 
   return (
     <span
-      className={`publication-badge publication-badge--recognition publication-badge--${recognition.kind}`}
+      className={cn(
+        publicationEntryStyles.badge,
+        publicationEntryStyles.recognitionBadge,
+        !isAward && publicationEntryStyles.nominationBadge
+      )}
       title={recognition.label}
       aria-label={recognition.label}
     >
-      <span className="publication-badge__icon" aria-hidden="true">
+      <span className={publicationEntryStyles.badgeIcon} aria-hidden="true">
         {isAward ? '🏆' : '🏅'}
       </span>
       {isAward ? 'Award' : 'Nominee'}
@@ -30,12 +39,17 @@ export function PublicationBadges({ publication }: PublicationBadgesProps) {
 
   return (
     <div
-      className="publication-badges"
+      className={publicationEntryStyles.badges}
+      data-publication-badges
       role="group"
       aria-label="Publication venue and recognition"
     >
       <span
-        className="publication-badge publication-badge--venue"
+        className={cn(
+          publicationEntryStyles.badge,
+          publicationEntryStyles.venueBadge,
+          venueToneClasses[venueTag.tone]
+        )}
         data-tone={venueTag.tone}
       >
         {venueTag.label}
