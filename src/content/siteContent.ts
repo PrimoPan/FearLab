@@ -29,7 +29,6 @@ export const navItems: readonly NavItem[] = [
   {
     label: 'News',
     to: '/news',
-    featuredLabel: "Meet US at CHI'26!",
     isFeatured: true
   },
   { label: 'Project', to: '/projects' },
@@ -83,6 +82,16 @@ export const constructionCopy: Record<'projects' | 'publications' | 'contact', C
 export const newsMoments = [
   'Fresh FEAR Lab work is heading into the CHI 2026 conversation.',
   'If you will be at CHI too, come meet the lab and say hello.'
+] as const
+
+export const newsItems = [
+  {
+    slug: 'meet-us-at-chi-2026',
+    title: "Meet Us at CHI'26",
+    category: 'Conference',
+    year: 2026,
+    summary: 'Two accepted papers and two co-organized workshops in Barcelona.'
+  }
 ] as const
 
 export const chiAcceptedPapers: readonly AcceptedPaper[] = [

@@ -4,6 +4,7 @@ import { SiteHeader } from '../components/layout/SiteHeader'
 import { constructionCopy } from '../content/siteContent'
 import { useAutoHideHeader } from '../hooks/useAutoHideHeader'
 import { ConstructionPage } from '../pages/ConstructionPage'
+import { Chi2026NewsPage } from '../pages/Chi2026NewsPage'
 import { HomePage } from '../pages/HomePage'
 import { NewsPage } from '../pages/NewsPage'
 import { PeoplePage } from '../pages/PeoplePage'
@@ -81,6 +82,7 @@ export function AppShell() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/meet-us-at-chi-2026" element={<Chi2026NewsPage />} />
         <Route path="/projects" element={<ConstructionPage {...constructionCopy.projects} />} />
         <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/people" element={<PeoplePage />} />
