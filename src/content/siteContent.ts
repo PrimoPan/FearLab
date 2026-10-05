@@ -26,11 +26,7 @@ export type Workshop = {
 
 export const navItems: readonly NavItem[] = [
   { label: 'Home', to: '/' },
-  {
-    label: 'News',
-    to: '/news',
-    isFeatured: true
-  },
+  { label: 'News', to: '/news' },
   { label: 'Project', to: '/projects' },
   { label: 'Publication', to: '/publications' },
   { label: 'People', to: '/people' },
