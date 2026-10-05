@@ -6,8 +6,9 @@ import type { PersonRecord } from '../types'
 export const primoPan: PersonRecord = {
   slug: 'dongyijie-primo-pan',
   name: 'Dongyijie Primo Pan',
-  positionLabel: 'MPhil Student',
-  groupKey: 'mphil',
+  positionLabel: 'PhD Student',
+  groupKey: 'phd',
+  directoryOrder: 1,
   website: tidyWebsite('https://primopan.github.io/about/'),
   emails: ['dpan750@connect.hkust-gz.edu.cn'],
   researchInterest: 'Well-Being, Mental Health, Education',

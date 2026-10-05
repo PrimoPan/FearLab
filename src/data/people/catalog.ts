@@ -32,7 +32,9 @@ const peopleCatalog: PersonRecord[] = [
 export const people: PersonRecord[] = [...peopleCatalog].sort((left, right) => {
   const orderDelta = roleOrder.indexOf(left.groupKey) - roleOrder.indexOf(right.groupKey)
 
-  return orderDelta || left.name.localeCompare(right.name)
+  const directoryDelta = (left.directoryOrder ?? 0) - (right.directoryOrder ?? 0)
+
+  return orderDelta || directoryDelta || left.name.localeCompare(right.name)
 })
 
 export const peopleBySlug = Object.fromEntries(

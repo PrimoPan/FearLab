@@ -7,6 +7,7 @@ export type PersonRecord = {
   name: string
   positionLabel: string
   groupKey: PersonGroupKey
+  directoryOrder?: number
   website?: string
   emails: string[]
   researchInterest: string
