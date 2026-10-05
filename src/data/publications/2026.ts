@@ -1,6 +1,19 @@
 import type { PublicationRecord } from './types'
 export const publications2026 = [
   {
+    id: 'can-i-trust-my-body',
+    title:
+      "Can I Trust My Body? A Three-Year Autoethnography of ChatGPT's Place in My Support System for Panic Attacks",
+    authors: ['Dongyijie Primo Pan', 'Pan Hui', 'Mirjana Prpa'],
+    year: 2026,
+    date: '18 September 2026',
+    sortDate: '2026-09-18',
+    kind: 'preprint',
+    venueTag: 'preprint',
+    venue: 'arXiv preprint arXiv:2609.21925',
+    articleUrl: 'https://arxiv.org/abs/2609.21925'
+  },
+  {
     id: 'tensions-and-opportunities-micro-phenomenology',
     title:
       'Tensions and Opportunities: Accessing Embodied Experience in HCI through Micro-Phenomenology',
