@@ -77,7 +77,7 @@ export function HomeBanner() {
         </motion.p>
         <motion.h1
           id="home-title"
-          className="m-0 text-[clamp(5.5rem,10vw,9rem)] font-medium leading-[0.88] tracking-[-0.075em] text-ink max-[900px]:text-[clamp(4.2rem,15vw,7rem)]"
+          className="m-0 -ml-[0.07em] text-[clamp(5.5rem,10vw,9rem)] font-medium leading-[0.88] tracking-[-0.075em] text-ink max-[900px]:text-[clamp(4.2rem,15vw,7rem)]"
           variants={reveal}
         >
           FEAR Lab<span className="text-accent">.</span>
