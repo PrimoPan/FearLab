@@ -147,11 +147,22 @@ jobs:
             tar -xJf "${RUNTIME_STAGE}/${NODE_ARCHIVE}" -C "$RUNTIME_STAGE"
             sudo cp -a "${RUNTIME_STAGE}/node-v${NODE_VERSION}-linux-${NODE_ARCH}" "$NODE_ROOT"
             sudo chown -R root:root "$NODE_ROOT"
-            sudo chmod 755 "$NODE_ROOT"
+          fi
+          # Extraction uses a private umask. Make only the verified runtime
+          # readable/traversable by the deploy user and the API service account.
+          # Apply this on retries too, including an earlier incomplete activation.
+          sudo chmod -R a+rX "$NODE_ROOT"
+          if ! ACTUAL_NODE_VERSION="$("${NODE_ROOT}/bin/node" --version)"; then
+            echo "Cannot execute the isolated runtime at ${NODE_ROOT}/bin/node." >&2
+            exit 1
+          fi
+          if [[ "$ACTUAL_NODE_VERSION" != "v${NODE_VERSION}" ]]; then
+            echo "Expected Node v${NODE_VERSION} at ${NODE_ROOT}/bin/node; found ${ACTUAL_NODE_VERSION}." >&2
+            exit 1
           fi
           export PATH="${NODE_ROOT}/bin:${PATH}"
-          [[ "$(node --version)" == "v${NODE_VERSION}" ]]
-          node -e "require('node:sqlite')"
+          hash -r
+          "${NODE_ROOT}/bin/node" -e "require('node:sqlite')"
 
           tar -xzf "$ARCHIVE_PATH" -C "$STAGE_DIR"
           [[ "$(tr -d '[:space:]' < "${STAGE_DIR}/.nvmrc")" == "$NODE_VERSION" ]]
