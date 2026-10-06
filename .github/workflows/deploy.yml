@@ -328,7 +328,7 @@ jobs:
           sudo systemctl restart "$SERVICE"
           API_READY=0
           for attempt in $(seq 1 30); do
-            if curl --fail --silent --max-time 2 http://127.0.0.1:3002/api/public/people \
+            if curl --noproxy '*' --fail --silent --max-time 2 http://127.0.0.1:3002/api/public/people \
               | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{if(!Array.isArray(JSON.parse(s).people))process.exit(1)}catch{process.exit(1)}})'; then
               API_READY=1
               break
@@ -403,12 +403,62 @@ jobs:
           sudo mv -Tf "${SITE_ROOT}.next-${RELEASE_ID}" "$SITE_ROOT"
           sudo systemctl reload nginx
 
-          # Origin certificates are intended for Cloudflare. This loopback-only check skips
-          # public-PKI validation; externally verify the real HTTPS domain after deployment.
-          curl --fail --silent --show-error --max-time 10 --insecure --resolve "${DOMAIN}:443:127.0.0.1" "https://${DOMAIN}/api/public/people" \
-            | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{if(!Array.isArray(JSON.parse(s).people))process.exit(1)})'
-          curl --fail --silent --show-error --max-time 10 --insecure --resolve "${DOMAIN}:443:127.0.0.1" "https://${DOMAIN}/test/reigister" -o "${BACKUP_DIR}/registration-check.html"
-          [[ "$(curl --silent --max-time 10 --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3001/api/public/people)" == 404 ]]
+          # Reload returns before old workers finish. Probe fresh connections until
+          # HTTPS serves the new API and frontend and static port 3001 denies API.
+          # The origin certificate needs loopback-only public-PKI bypass; verify
+          # the public domain separately with normal certificate validation.
+          NGINX_READY=0
+          NGINX_DEADLINE=$((SECONDS + 30))
+          ORIGIN_API_STATUS=unprobed
+          REGISTRATION_STATUS=unprobed
+          STATIC_API_STATUS=unprobed
+          PROBE_NOTE='Waiting for reloaded Nginx workers.'
+          probe_timeout() {
+            PROBE_TIMEOUT=$((NGINX_DEADLINE - SECONDS))
+            if (( PROBE_TIMEOUT <= 0 )); then return 1; fi
+            if (( PROBE_TIMEOUT > 2 )); then PROBE_TIMEOUT=2; fi
+          }
+          probe_origin() {
+            probe_timeout || return 1
+            if ! ORIGIN_API_STATUS="$(curl --noproxy '*' --silent --show-error --http1.1 --header 'Connection: close' \
+              --max-time "$PROBE_TIMEOUT" --insecure --resolve "${DOMAIN}:443:127.0.0.1" \
+              --output "${BACKUP_DIR}/origin-api-check.json" --write-out '%{http_code}' \
+              "https://${DOMAIN}/api/public/people" 2>"${BACKUP_DIR}/origin-probe-error.log")"; then
+              PROBE_NOTE='HTTPS API transport failed.'; return 1
+            fi
+            if [[ "$ORIGIN_API_STATUS" != 200 ]]; then PROBE_NOTE='HTTPS API did not return HTTP 200.'; return 1; fi
+            if ! node -e 'try{const v=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));process.exit(Array.isArray(v.people)?0:1)}catch{process.exit(1)}' "${BACKUP_DIR}/origin-api-check.json"; then
+              PROBE_NOTE='HTTPS API response is not valid People JSON.'; return 1
+            fi
+            probe_timeout || return 1
+            if ! STATIC_API_STATUS="$(curl --noproxy '*' --silent --show-error --http1.1 --header 'Connection: close' \
+              --max-time "$PROBE_TIMEOUT" --output /dev/null --write-out '%{http_code}' \
+              http://127.0.0.1:3001/api/public/people 2>"${BACKUP_DIR}/origin-probe-error.log")"; then
+              PROBE_NOTE='Static-port check failed to connect.'; return 1
+            fi
+            if [[ "$STATIC_API_STATUS" != 404 ]]; then PROBE_NOTE='Static port 3001 has not denied API access.'; return 1; fi
+            probe_timeout || return 1
+            if ! REGISTRATION_STATUS="$(curl --noproxy '*' --silent --show-error --http1.1 --header 'Connection: close' \
+              --max-time "$PROBE_TIMEOUT" --insecure --resolve "${DOMAIN}:443:127.0.0.1" \
+              --output "${BACKUP_DIR}/registration-check.html" --write-out '%{http_code}' \
+              "https://${DOMAIN}/test/reigister" 2>"${BACKUP_DIR}/origin-probe-error.log")"; then
+              PROBE_NOTE='Registration route transport failed.'; return 1
+            fi
+            if [[ "$REGISTRATION_STATUS" != 200 ]]; then PROBE_NOTE='Registration route did not return HTTP 200.'; return 1; fi
+            if ! cmp -s "${BACKUP_DIR}/registration-check.html" "${STAGE_DIR}/dist/index.html"; then
+              PROBE_NOTE='Registration route does not yet serve the new frontend.'; return 1
+            fi
+            return 0
+          }
+          while (( SECONDS < NGINX_DEADLINE )); do
+            if probe_origin; then NGINX_READY=1; break; fi
+            sleep 1
+          done
+          if [[ "$NGINX_READY" != 1 ]]; then
+            printf 'Nginx readiness failed: %s API=%s; registration=%s; static API=%s.\n' \
+              "$PROBE_NOTE" "$ORIGIN_API_STATUS" "$REGISTRATION_STATUS" "$STATIC_API_STATUS" >&2
+            false
+          fi
           SOURCE_CHANGED=1
           if [[ "$SOURCE_EXISTED" == 1 ]]; then mv "$SOURCE_DIR" "${BACKUP_DIR}/source.previous"; fi
           mv "$STAGE_DIR" "$SOURCE_DIR"
