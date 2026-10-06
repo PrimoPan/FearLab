@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import type { Theme } from '../../app/theme'
 import { navItems } from '../../content/siteContent'
 import { cn } from '../../lib/cn'
+import { usePortalSession } from '../../lib/portal/PortalSessionContext'
 
 type SiteHeaderProps = {
   theme: Theme
@@ -65,6 +66,8 @@ const themeChipClasses = cn(
 
 export function SiteHeader(props: SiteHeaderProps) {
   const location = useLocation()
+  const { session } = usePortalSession()
+  const showProfile = Boolean(session?.user) && (location.pathname === '/test' || location.pathname.startsWith('/test/'))
   const navRef = useRef<HTMLElement | null>(null)
   const nextThemeLabel = props.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
 
@@ -136,6 +139,7 @@ export function SiteHeader(props: SiteHeaderProps) {
           {props.theme === 'dark' ? 'Dark' : 'Light'}
         </span>
       </button>
+      {showProfile && <NavLink to="/test/profile" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-line px-4 text-sm text-ink no-underline transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent aria-[current=page]:border-accent aria-[current=page]:text-accent max-[520px]:px-3">My Profile</NavLink>}
     </header>
   )
 }

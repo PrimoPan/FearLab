@@ -1,3 +1,5 @@
+import chi2026Logo from '../../assets/News/chi2026-barcelona.webp'
+
 export type NavItem = {
   label: string
   to: string
@@ -86,7 +88,11 @@ export const newsItems = [
     title: "Meet Us at CHI'26",
     category: 'Conference',
     year: 2026,
-    summary: 'Two accepted papers and two co-organized workshops in Barcelona.'
+    summary: 'Two accepted papers and two co-organized workshops in Barcelona.',
+    thumbnail: chi2026Logo,
+    thumbnailAlt: 'Official CHI 2026 Barcelona mosaic logo',
+    // Official source: https://chi2026.acm.org/wordpress/wp-content/uploads/2025/03/image.png
+    thumbnailSource: 'https://chi2026.acm.org/'
   }
 ] as const
 

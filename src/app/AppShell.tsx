@@ -10,8 +10,14 @@ import { NewsPage } from '../pages/NewsPage'
 import { PeoplePage } from '../pages/PeoplePage'
 import { PersonRedirectPage } from '../pages/PersonRedirectPage'
 import { PublicationsPage } from '../pages/PublicationsPage'
+import { ProjectsPage } from '../pages/ProjectsPage'
+import { PhdProjectPage } from '../pages/PhdProjectPage'
+import { PublishedProjectPage } from '../pages/PublishedProjectPage'
+import { lazy, Suspense } from 'react'
 import { cn } from '../lib/cn'
 import { detectInitialTheme, themeStorageKey, toggleTheme, type Theme } from './theme'
+
+const PortalPage = lazy(() => import('../pages/portal/PortalPage').then(module => ({ default: module.PortalPage })))
 
 const shellClass = cn(
   'relative min-h-screen overflow-x-clip',
@@ -83,7 +89,10 @@ export function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/meet-us-at-chi-2026" element={<Chi2026NewsPage />} />
-        <Route path="/projects" element={<ConstructionPage {...constructionCopy.projects} />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/cbt-informed-health" element={<PhdProjectPage />} />
+        <Route path="/projects/research/:id" element={<PublishedProjectPage />} />
+        <Route path="/test/*" element={<Suspense fallback={<p className="px-8 py-16">Loading workspace…</p>}><PortalPage /></Suspense>} />
         <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/people/:slug" element={<PersonRedirectPage />} />

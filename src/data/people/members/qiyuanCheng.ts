@@ -6,13 +6,13 @@ import type { PersonRecord } from '../types'
 export const qiyuanCheng: PersonRecord = {
   slug: 'qiyuan-cheng',
   name: 'Qiyuan Cheng',
-  positionLabel: 'Research Assistant',
-  groupKey: 'ra',
+  positionLabel: 'PhD Student',
+  groupKey: 'phd',
   website: tidyWebsite(''),
   emails: ['chengqiyuan2024@gmail.com'],
   researchInterest: 'Aging, XR, Human-AI Interaction',
   bioParagraphs: paragraphs(
-    `Qiyuan Cheng is a research assistant at FEAR Lab, HKUST (Guangzhou), under
+    `Qiyuan Cheng is a PhD student at FEAR Lab, HKUST (Guangzhou), under
     Dr. Mirjana Prpa. He holds an M.S. in Industrial Engineering (Human Factors) from
     the University of Illinois Urbana-Champaign, where he worked with Dr. Avinash Gupta
     and Dr. Wendy Rogers on VR-based engagement for older adults.`

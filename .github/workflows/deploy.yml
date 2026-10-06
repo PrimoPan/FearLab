@@ -43,6 +43,9 @@ jobs:
       - name: Run type check
         run: npm run check
 
+      - name: Test portal API
+        run: npm run test:api
+
       - name: Build site
         run: npm run build
 
@@ -51,6 +54,17 @@ jobs:
           ARCHIVE_PATH="$RUNNER_TEMP/fearlab-site-src.tar.gz"
           COPYFILE_DISABLE=1 tar \
             --exclude=".git" \
+            --exclude=".git-*" \
+            --exclude=".codex" \
+            --exclude=".agents" \
+            --exclude=".env" \
+            --exclude=".env.*" \
+            --exclude="tmp" \
+            --exclude=".DS_Store" \
+            --exclude=".idea" \
+            --exclude=".vscode" \
+            --exclude="*.log" \
+            --exclude=".local-data" \
             --exclude="node_modules" \
             --exclude="dist" \
             --exclude=".deploy" \
@@ -68,215 +82,328 @@ jobs:
           REMOTE_SCRIPT_PATH="$RUNNER_TEMP/fearlab-remote-build.sh"
           cat > "$REMOTE_SCRIPT_PATH" <<'SCRIPT'
           #!/usr/bin/env bash
-          set -euo pipefail
+          set -Eeuo pipefail
+          umask 077
 
-          SSL_CERT_PATH=""
-          SSL_KEY_PATH=""
-          DEFAULT_SSL_CERT_PATH="/etc/ssl/fearlab/origin.crt"
-          DEFAULT_SSL_KEY_PATH="/etc/ssl/fearlab/origin.key"
+          : "${ARCHIVE_PATH:?Set ARCHIVE_PATH to the uploaded source archive}"
+          SOURCE_DIR="${SOURCE_DIR:-/home/ubuntu/fearlab-site-src}"
+          SITE_ROOT="${SITE_ROOT:-/var/www/fearlab/current}"
+          RELEASE_ROOT="${RELEASE_ROOT:-/var/www/fearlab/releases}"
+          BACKUP_ROOT="${BACKUP_ROOT:-/home/ubuntu/fearlab-backups}"
+          NGINX_SITE="${NGINX_SITE:-/etc/nginx/sites-available/fearlab.conf}"
+          DOMAIN="${DOMAIN:-fearlab.space}"
+          WWW_DOMAIN="${WWW_DOMAIN:-www.fearlab.space}"
+          NODE_VERSION="22.23.1"
+          NODE_ROOT="/opt/node-v${NODE_VERSION}"
+          API_ROOT="/opt/fearlab-api"
+          DATA_DIR="/var/lib/fearlab-portal"
+          SERVICE="fearlab-portal.service"
+          SERVICE_FILE="/etc/systemd/system/${SERVICE}"
+          ENABLED_SITE="/etc/nginx/sites-enabled/fearlab.conf"
+          SSL_CERT_PATH="/etc/ssl/fearlab/origin.crt"
+          SSL_KEY_PATH="/etc/ssl/fearlab/origin.key"
+          RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+          BACKUP_DIR="${BACKUP_ROOT}/${RELEASE_ID}"
+          STAGE_DIR="${SOURCE_DIR}.stage-${RELEASE_ID}"
+          FRONT_RELEASE="${RELEASE_ROOT}/${RELEASE_ID}"
+          API_RELEASE="${API_ROOT}/releases/${RELEASE_ID}"
+          FRONT_LEGACY="${RELEASE_ROOT}/${RELEASE_ID}-legacy"
+          API_LEGACY="${API_ROOT}/releases/${RELEASE_ID}-legacy"
+          ROLLBACK_ARMED=0
+          FRONT_CHANGED=0
+          API_CHANGED=0
+          SOURCE_CHANGED=0
 
-          if [[ -f "$DEFAULT_SSL_CERT_PATH" ]]; then
-            SSL_CERT_PATH="$DEFAULT_SSL_CERT_PATH"
+          for executable in curl tar sha256sum python3 flock ss; do
+            command -v "$executable" >/dev/null || { echo "Required command unavailable: $executable" >&2; exit 1; }
+          done
+          sudo -n true
+          sudo nginx -V 2>&1 | grep -q -- '--with-http_realip_module'
+          sudo test -f "$SSL_CERT_PATH"
+          sudo test -f "$SSL_KEY_PATH"
+          [[ "$DOMAIN" =~ ^[a-z0-9.-]+$ && "$WWW_DOMAIN" =~ ^[a-z0-9.-]+$ ]]
+          [[ -f "$ARCHIVE_PATH" ]]
+          mkdir -p "$BACKUP_ROOT"
+          chmod 700 "$BACKUP_ROOT"
+          exec 9>"${BACKUP_ROOT}/.deploy.lock"
+          flock -n 9 || { echo 'Another FEAR Lab deployment is running.' >&2; exit 1; }
+          mkdir -m 700 "$BACKUP_DIR" "$STAGE_DIR"
+
+          # Install an isolated exact runtime; never change the shared host's /usr/bin/node.
+          if ! sudo test -x "${NODE_ROOT}/bin/node"; then
+            case "$(uname -m)" in
+              x86_64) NODE_ARCH=x64 ;;
+              aarch64) NODE_ARCH=arm64 ;;
+              *) echo 'Unsupported server architecture.' >&2; exit 1 ;;
+            esac
+            RUNTIME_STAGE="${BACKUP_DIR}/runtime"
+            mkdir "$RUNTIME_STAGE"
+            NODE_ARCHIVE="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz"
+            curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+              "https://nodejs.org/dist/v${NODE_VERSION}/${NODE_ARCHIVE}" -o "${RUNTIME_STAGE}/${NODE_ARCHIVE}"
+            curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+              "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o "${RUNTIME_STAGE}/SHASUMS256.txt"
+            (cd "$RUNTIME_STAGE" && awk -v file="$NODE_ARCHIVE" '$2 == file {print; found=1} END {if (!found) exit 1}' SHASUMS256.txt | sha256sum --check --strict -)
+            tar -xJf "${RUNTIME_STAGE}/${NODE_ARCHIVE}" -C "$RUNTIME_STAGE"
+            sudo cp -a "${RUNTIME_STAGE}/node-v${NODE_VERSION}-linux-${NODE_ARCH}" "$NODE_ROOT"
+            sudo chown -R root:root "$NODE_ROOT"
+            sudo chmod 755 "$NODE_ROOT"
           fi
+          export PATH="${NODE_ROOT}/bin:${PATH}"
+          [[ "$(node --version)" == "v${NODE_VERSION}" ]]
+          node -e "require('node:sqlite')"
 
-          if [[ -f "$DEFAULT_SSL_KEY_PATH" ]]; then
-            SSL_KEY_PATH="$DEFAULT_SSL_KEY_PATH"
+          tar -xzf "$ARCHIVE_PATH" -C "$STAGE_DIR"
+          [[ "$(tr -d '[:space:]' < "${STAGE_DIR}/.nvmrc")" == "$NODE_VERSION" ]]
+          (
+            cd "$STAGE_DIR"
+            echo "Validating with Node $(node -v) and npm $(npm -v)"
+            npm ci
+            npm run check
+            npm run test:api
+            npm run build
+          )
+
+          # Accept proxy client identities only from Cloudflare's complete, validated lists.
+          # Scope real_ip directives to this site's HTTPS block, not other hosted sites.
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            https://www.cloudflare.com/ips-v4 -o "${BACKUP_DIR}/cloudflare-ips-v4.txt"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            https://www.cloudflare.com/ips-v6 -o "${BACKUP_DIR}/cloudflare-ips-v6.txt"
+          python3 - "$BACKUP_DIR" > "${BACKUP_DIR}/cloudflare-real-ip.conf" <<'PY'
+          import ipaddress
+          import pathlib
+          import sys
+          base = pathlib.Path(sys.argv[1])
+          for family in (4, 6):
+              lines = (base / f'cloudflare-ips-v{family}.txt').read_text().splitlines()
+              if not lines or any(not line.strip() for line in lines):
+                  raise SystemExit(f'Incomplete Cloudflare IPv{family} list')
+              networks = [ipaddress.ip_network(line.strip(), strict=True) for line in lines]
+              if len(networks) != len(set(networks)) or any(net.version != family or net.prefixlen == 0 or not net.is_global for net in networks):
+                  raise SystemExit(f'Invalid Cloudflare IPv{family} list')
+              for network in networks:
+                  print(f'    set_real_ip_from {network};')
+          print('    real_ip_header CF-Connecting-IP;')
+          print('    real_ip_recursive on;')
+          PY
+
+          OLD_FRONT_TARGET=""
+          OLD_API_TARGET=""
+          NGINX_EXISTED=0
+          ENABLED_EXISTED=0
+          SERVICE_EXISTED=0
+          SERVICE_WAS_ACTIVE=0
+          SERVICE_WAS_ENABLED=0
+          SOURCE_EXISTED=0
+          if sudo test -L "$SITE_ROOT"; then OLD_FRONT_TARGET="$(sudo readlink "$SITE_ROOT")"; fi
+          if sudo test -L "${API_ROOT}/current"; then OLD_API_TARGET="$(sudo readlink "${API_ROOT}/current")"; fi
+          if [[ -d "$SOURCE_DIR" ]]; then
+            SOURCE_EXISTED=1
+            tar --exclude=node_modules --exclude=dist -czf "${BACKUP_DIR}/source.tar.gz" -C "$SOURCE_DIR" .
           fi
-
-          require_command() {
-            command -v "$1" >/dev/null 2>&1
-          }
-
-          node_supports_vite8() {
-            require_command node && node -e '
-              const [major, minor] = process.versions.node.split(".").map(Number)
-              const supported =
-                (major === 20 && minor >= 19) ||
-                (major === 22 && minor >= 12) ||
-                major > 22
-              process.exit(supported ? 0 : 1)
-            '
-          }
-
-          if ! sudo -n true >/dev/null 2>&1; then
-            echo "Passwordless sudo is required for remote deployment." >&2
+          if sudo test -d "$SITE_ROOT"; then sudo tar -czf "${BACKUP_DIR}/site.tar.gz" -C "$SITE_ROOT" .; fi
+          if sudo test -d "${API_ROOT}/current"; then sudo tar -czf "${BACKUP_DIR}/api.tar.gz" -C "${API_ROOT}/current" .; fi
+          if sudo test -e "$NGINX_SITE"; then NGINX_EXISTED=1; sudo cp -a "$NGINX_SITE" "${BACKUP_DIR}/nginx.conf"; fi
+          if sudo test -e "$ENABLED_SITE" || sudo test -L "$ENABLED_SITE"; then ENABLED_EXISTED=1; sudo cp -a "$ENABLED_SITE" "${BACKUP_DIR}/nginx-enabled"; fi
+          if sudo test -e "$SERVICE_FILE"; then SERVICE_EXISTED=1; sudo cp -a "$SERVICE_FILE" "${BACKUP_DIR}/portal.service"; fi
+          if sudo systemctl is-active --quiet "$SERVICE"; then SERVICE_WAS_ACTIVE=1; fi
+          if sudo systemctl is-enabled --quiet "$SERVICE" 2>/dev/null; then SERVICE_WAS_ENABLED=1; fi
+          if [[ "$SERVICE_WAS_ACTIVE" == 0 ]] && ss -H -ltn 'sport = :3002' | grep -q .; then
+            echo 'Port 3002 is already in use by a process outside the active portal service; stopping deployment.' >&2
             exit 1
           fi
+          printf '%s\n' "release=${RELEASE_ID}" "previous_front=${OLD_FRONT_TARGET}" "previous_api=${OLD_API_TARGET}" \
+            "service_was_active=${SERVICE_WAS_ACTIVE}" "service_was_enabled=${SERVICE_WAS_ENABLED}" > "${BACKUP_DIR}/manifest.txt"
 
-          if ! node_supports_vite8; then
-            sudo apt-get update
-            sudo apt-get install -y ca-certificates curl gnupg
-            sudo mkdir -p /etc/apt/keyrings
-            sudo rm -f /etc/apt/keyrings/nodesource.gpg
-            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-              | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
-              | sudo tee /etc/apt/sources.list.d/nodesource.list >/dev/null
-            sudo apt-get update
-            sudo apt-get install -y nodejs
-          fi
-
-          if ! require_command nginx; then
-            sudo apt-get update
-            sudo apt-get install -y nginx
-          fi
-
-          BACKUP_DIR="${BACKUP_ROOT}/$(date -u +%Y%m%dT%H%M%SZ)"
-          mkdir -p "$BACKUP_DIR"
-          if [[ -d "$SOURCE_DIR" ]]; then
-            tar \
-              --exclude="node_modules" \
-              --exclude="dist" \
-              -czf "$BACKUP_DIR/source.tar.gz" \
-              -C "$SOURCE_DIR" \
-              .
-          fi
-          if sudo test -d "$SITE_ROOT"; then
-            sudo tar -czf "$BACKUP_DIR/site.tar.gz" -C "$SITE_ROOT" .
-            sudo chown "$(id -u):$(id -g)" "$BACKUP_DIR/site.tar.gz"
-          fi
-          find "$BACKUP_ROOT" \
-            -mindepth 1 \
-            -maxdepth 1 \
-            -type d \
-            -printf '%f\n' \
-            | sort -r \
-            | tail -n +11 \
-            | while IFS= read -r backup_name; do
-                rm -rf -- "$BACKUP_ROOT/$backup_name"
-              done
-
-          rm -rf "$SOURCE_DIR"
-          mkdir -p "$SOURCE_DIR"
-          tar -xzf "$ARCHIVE_PATH" -C "$SOURCE_DIR"
-
-          cd "$SOURCE_DIR"
-          echo "Building with Node $(node -v) and npm $(npm -v)"
-          if [[ -f package-lock.json ]]; then
-            npm ci
-          else
-            npm install
-          fi
-          npm run check
-          npm run build
-
-          RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)"
-          RELEASE_DIR="$RELEASE_ROOT/$RELEASE_ID"
-          NEXT_LINK="${SITE_ROOT}.next"
-          sudo mkdir -p "$RELEASE_DIR"
-          sudo cp -a "$SOURCE_DIR/dist/." "$RELEASE_DIR/"
-          sudo chown -R www-data:www-data "$RELEASE_DIR"
-
-          if [[ -n "$SSL_CERT_PATH" && -n "$SSL_KEY_PATH" ]]; then
-            HTTP_BEHAVIOR="    return 301 https://${DOMAIN}\$request_uri;"
-            SSL_BLOCK=$(cat <<EOF
-          server {
-              listen 443 ssl http2;
-              listen [::]:443 ssl http2;
-              server_name ${DOMAIN} ${WWW_DOMAIN};
-
-              ssl_certificate ${SSL_CERT_PATH};
-              ssl_certificate_key ${SSL_KEY_PATH};
-              ssl_protocols TLSv1.2 TLSv1.3;
-              ssl_ciphers HIGH:!aNULL:!MD5;
-
-              if (\$host = ${WWW_DOMAIN}) {
-                  return 301 https://${DOMAIN}\$request_uri;
-              }
-
-              root ${SITE_ROOT};
-              index index.html;
-
-              location / {
-                  try_files \$uri \$uri/ /index.html;
-              }
+          restore_pointer() {
+            local current="$1" previous="$2" legacy="$3"
+            if sudo test -L "$current"; then sudo rm -f -- "$current"; fi
+            if [[ -n "$previous" ]]; then
+              sudo ln -s "$previous" "$current"
+            elif sudo test -d "$legacy"; then
+              sudo mv "$legacy" "$current"
+            fi
           }
-          EOF
-            )
-          else
-            HTTP_BEHAVIOR=$(cat <<EOF
-              if (\$host = ${WWW_DOMAIN}) {
-                  return 301 http://${DOMAIN}\$request_uri;
-              }
+          rollback() {
+            local status="${1:-$?}"
+            trap - ERR INT TERM
+            if [[ "$ROLLBACK_ARMED" == 1 ]]; then
+              set +e
+              echo "Deployment failed; restoring prior code and configuration. Backup: ${BACKUP_DIR}" >&2
+              sudo systemctl stop "$SERVICE"
+              if [[ "$SERVICE_WAS_ENABLED" == 0 ]]; then sudo systemctl disable "$SERVICE" 2>/dev/null; fi
+              if [[ "$API_CHANGED" == 1 ]]; then restore_pointer "${API_ROOT}/current" "$OLD_API_TARGET" "$API_LEGACY"; fi
+              if [[ "$FRONT_CHANGED" == 1 ]]; then restore_pointer "$SITE_ROOT" "$OLD_FRONT_TARGET" "$FRONT_LEGACY"; fi
+              if [[ "$SERVICE_EXISTED" == 1 ]]; then sudo cp -a "${BACKUP_DIR}/portal.service" "$SERVICE_FILE"; else sudo rm -f -- "$SERVICE_FILE"; fi
+              if [[ "$NGINX_EXISTED" == 1 ]]; then sudo cp -a "${BACKUP_DIR}/nginx.conf" "$NGINX_SITE"; else sudo rm -f -- "$NGINX_SITE"; fi
+              sudo rm -f -- "$ENABLED_SITE"
+              if [[ "$ENABLED_EXISTED" == 1 ]]; then sudo cp -a "${BACKUP_DIR}/nginx-enabled" "$ENABLED_SITE"; fi
+              sudo systemctl daemon-reload
+              if [[ "$SERVICE_WAS_ENABLED" == 1 ]]; then sudo systemctl enable "$SERVICE"; else sudo systemctl disable "$SERVICE" 2>/dev/null; fi
+              if [[ "$SERVICE_WAS_ACTIVE" == 1 ]]; then sudo systemctl start "$SERVICE"; fi
+              sudo nginx -t && sudo systemctl reload nginx
+              if [[ "$SOURCE_CHANGED" == 1 ]]; then
+                if [[ -d "$SOURCE_DIR" ]]; then mv "$SOURCE_DIR" "${SOURCE_DIR}.failed-${RELEASE_ID}"; fi
+                if [[ -d "${BACKUP_DIR}/source.previous" ]]; then mv "${BACKUP_DIR}/source.previous" "$SOURCE_DIR"; fi
+              fi
+              echo 'Persistent portal data has been preserved. Do not restore an older database automatically.' >&2
+            fi
+            exit "$status"
+          }
+          trap rollback ERR
+          trap 'rollback 130' INT
+          trap 'rollback 143' TERM
 
-              root ${SITE_ROOT};
-              index index.html;
-
-              location / {
-                  try_files \$uri \$uri/ /index.html;
-              }
-          EOF
-            )
-            SSL_BLOCK=""
+          sudo install -d -m 755 "$RELEASE_ROOT" "$API_ROOT" "${API_ROOT}/releases"
+          sudo mkdir "$FRONT_RELEASE" "$API_RELEASE"
+          sudo cp -a "${STAGE_DIR}/dist/." "$FRONT_RELEASE/"
+          sudo cp -a "${STAGE_DIR}/server" "$API_RELEASE/"
+          sudo chown -R root:root "$FRONT_RELEASE" "$API_RELEASE"
+          sudo find "$FRONT_RELEASE" "$API_RELEASE" -type d -exec chmod 755 {} +
+          sudo find "$FRONT_RELEASE" "$API_RELEASE" -type f -exec chmod 644 {} +
+          if ! id -u fearlab-portal >/dev/null 2>&1; then
+            sudo useradd --system --user-group --home-dir "$DATA_DIR" --no-create-home --shell /usr/sbin/nologin fearlab-portal
           fi
 
+          ROLLBACK_ARMED=1
+          if [[ "$SERVICE_WAS_ACTIVE" == 1 ]]; then sudo systemctl stop "$SERVICE"; fi
+          # The process is stopped, so the whole database/WAL/uploads set is consistent.
+          if sudo test -d "$DATA_DIR"; then
+            sudo sh -c 'umask 077; tar -czf "$1" -C "$2" .' sh "${BACKUP_DIR}/portal-data.tar.gz" "$DATA_DIR"
+            sudo chmod 600 "${BACKUP_DIR}/portal-data.tar.gz"
+          fi
+          sudo install -d -m 700 -o fearlab-portal -g fearlab-portal "$DATA_DIR"
+          sudo chown -R fearlab-portal:fearlab-portal "$DATA_DIR"
+
+          API_CHANGED=1
+          sudo ln -s "$API_RELEASE" "${API_ROOT}/current.next-${RELEASE_ID}"
+          if sudo test -e "${API_ROOT}/current" && ! sudo test -L "${API_ROOT}/current"; then sudo mv "${API_ROOT}/current" "$API_LEGACY"; fi
+          sudo mv -Tf "${API_ROOT}/current.next-${RELEASE_ID}" "${API_ROOT}/current"
+          sudo tee "$SERVICE_FILE" >/dev/null <<EOF
+          [Unit]
+          Description=FEAR Lab member portal API
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=fearlab-portal
+          Group=fearlab-portal
+          WorkingDirectory=${API_ROOT}/current
+          ExecStart=${NODE_ROOT}/bin/node ${API_ROOT}/current/server/server.mjs
+          Environment=NODE_ENV=production
+          Environment=HOST=127.0.0.1
+          Environment=PORT=3002
+          Environment=PORTAL_DATA_DIR=${DATA_DIR}
+          Environment=PORTAL_ORIGINS=https://${DOMAIN}
+          Environment=PORTAL_TRUST_PROXY=loopback
+          Restart=on-failure
+          RestartSec=5
+          TimeoutStopSec=40
+          UMask=0077
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ReadWritePaths=${DATA_DIR}
+          RestrictSUIDSGID=true
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          sudo chmod 644 "$SERVICE_FILE"
+          sudo systemctl daemon-reload
+          sudo systemctl enable "$SERVICE"
+          sudo systemctl restart "$SERVICE"
+          API_READY=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:3002/api/public/people \
+              | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{if(!Array.isArray(JSON.parse(s).people))process.exit(1)}catch{process.exit(1)}})'; then
+              API_READY=1
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$API_READY" != 1 ]]; then
+            sudo journalctl -u "$SERVICE" -n 40 --no-pager >&2
+            echo 'The new portal API did not become ready.' >&2
+            false
+          fi
+          sudo systemctl is-active --quiet "$SERVICE"
+
+          # Port 3001 remains a static preview only. HTTP redirects; only HTTPS proxies API.
           sudo tee "$NGINX_SITE" >/dev/null <<EOF
           server {
               listen 3001 default_server;
               listen [::]:3001 default_server;
               server_name _;
-
               root ${SITE_ROOT};
               index index.html;
-
-              location / {
-                  try_files \$uri \$uri/ /index.html;
-              }
+              location = /api { return 404; }
+              location ^~ /api/ { return 404; }
+              location / { try_files \$uri \$uri/ /index.html; }
           }
 
           server {
               listen 80;
               listen [::]:80;
               server_name ${DOMAIN} ${WWW_DOMAIN};
-
-          ${HTTP_BEHAVIOR}
+              return 301 https://${DOMAIN}\$request_uri;
           }
 
-          ${SSL_BLOCK}
+          server {
+              listen 443 ssl http2;
+              listen [::]:443 ssl http2;
+              server_name ${DOMAIN} ${WWW_DOMAIN};
+              ssl_certificate ${SSL_CERT_PATH};
+              ssl_certificate_key ${SSL_KEY_PATH};
+              ssl_protocols TLSv1.2 TLSv1.3;
+              ssl_ciphers HIGH:!aNULL:!MD5;
+          $(cat "${BACKUP_DIR}/cloudflare-real-ip.conf")
+              if (\$host = ${WWW_DOMAIN}) { return 301 https://${DOMAIN}\$request_uri; }
+              root ${SITE_ROOT};
+              index index.html;
+              client_max_body_size 24m;
+              location = /api { return 404; }
+              location ^~ /api/ {
+                  proxy_pass http://127.0.0.1:3002;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$remote_addr;
+                  proxy_set_header X-Forwarded-Proto https;
+                  proxy_set_header Connection "";
+                  proxy_cache off;
+                  proxy_buffering off;
+                  proxy_hide_header Cache-Control;
+                  add_header Cache-Control "no-store" always;
+                  proxy_read_timeout 45s;
+              }
+              location / { try_files \$uri \$uri/ /index.html; }
+          }
           EOF
-
-          sudo ln -sfn "$NGINX_SITE" /etc/nginx/sites-enabled/fearlab.conf
-          if [[ -f /etc/nginx/sites-enabled/default ]]; then
-            sudo rm -f /etc/nginx/sites-enabled/default
-          fi
-
+          sudo chmod 644 "$NGINX_SITE"
+          sudo ln -sfn "$NGINX_SITE" "$ENABLED_SITE"
           sudo nginx -t
 
-          sudo ln -sfn "$RELEASE_DIR" "$NEXT_LINK"
-          if sudo test -L "$SITE_ROOT"; then
-            sudo mv -Tf "$NEXT_LINK" "$SITE_ROOT"
-          elif sudo test -e "$SITE_ROOT"; then
-            LEGACY_DIR="$RELEASE_ROOT/${RELEASE_ID}-legacy"
-            sudo mv "$SITE_ROOT" "$LEGACY_DIR"
-            if ! sudo mv -Tf "$NEXT_LINK" "$SITE_ROOT"; then
-              sudo mv "$LEGACY_DIR" "$SITE_ROOT"
-              exit 1
-            fi
-          else
-            sudo mv -Tf "$NEXT_LINK" "$SITE_ROOT"
-          fi
+          FRONT_CHANGED=1
+          sudo ln -s "$FRONT_RELEASE" "${SITE_ROOT}.next-${RELEASE_ID}"
+          if sudo test -e "$SITE_ROOT" && ! sudo test -L "$SITE_ROOT"; then sudo mv "$SITE_ROOT" "$FRONT_LEGACY"; fi
+          sudo mv -Tf "${SITE_ROOT}.next-${RELEASE_ID}" "$SITE_ROOT"
+          sudo systemctl reload nginx
 
-          sudo systemctl enable nginx
-          if sudo systemctl is-active --quiet nginx; then
-            sudo systemctl reload nginx
-          else
-            sudo systemctl start nginx
-          fi
-
-          CURRENT_RELEASE="$(sudo readlink -f "$SITE_ROOT")"
-          sudo find "$RELEASE_ROOT" \
-            -mindepth 1 \
-            -maxdepth 1 \
-            -type d \
-            -printf '%T@ %p\n' \
-            | sort -nr \
-            | tail -n +6 \
-            | cut -d' ' -f2- \
-            | while IFS= read -r old_release; do
-                if [[ "$old_release" != "$CURRENT_RELEASE" ]]; then
-                  sudo rm -rf -- "$old_release"
-                fi
-              done
+          # Origin certificates are intended for Cloudflare. This loopback-only check skips
+          # public-PKI validation; externally verify the real HTTPS domain after deployment.
+          curl --fail --silent --show-error --max-time 10 --insecure --resolve "${DOMAIN}:443:127.0.0.1" "https://${DOMAIN}/api/public/people" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{if(!Array.isArray(JSON.parse(s).people))process.exit(1)})'
+          curl --fail --silent --show-error --max-time 10 --insecure --resolve "${DOMAIN}:443:127.0.0.1" "https://${DOMAIN}/test/reigister" -o "${BACKUP_DIR}/registration-check.html"
+          [[ "$(curl --silent --max-time 10 --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3001/api/public/people)" == 404 ]]
+          SOURCE_CHANGED=1
+          if [[ "$SOURCE_EXISTED" == 1 ]]; then mv "$SOURCE_DIR" "${BACKUP_DIR}/source.previous"; fi
+          mv "$STAGE_DIR" "$SOURCE_DIR"
+          ROLLBACK_ARMED=0
+          trap - ERR INT TERM
+          printf 'Deployed release %s\nBackup: %s\nStatic: %s\nAPI: %s\nData: %s\nHealth: local API and HTTPS origin passed; static port 3001 denies API access.\n' "$RELEASE_ID" "$BACKUP_DIR" "$FRONT_RELEASE" "$API_RELEASE" "$DATA_DIR"
           SCRIPT
           chmod +x "$REMOTE_SCRIPT_PATH"
           echo "REMOTE_SCRIPT_PATH=$REMOTE_SCRIPT_PATH" >> "$GITHUB_ENV"

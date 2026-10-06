@@ -4,9 +4,10 @@ import { useSearchParams } from 'react-router-dom'
 import { PersonCard } from '../components/people/PersonCard'
 import { PeopleDirectoryHero } from '../components/people/PeopleDirectoryHero'
 import { PersonDetailSection } from '../components/people/PersonDetailSection'
-import { people, peopleBySlug, type PersonRecord } from '../data/people'
+import type { PersonRecord } from '../data/people'
 import { staggerIn } from '../lib/animations'
 import { cn } from '../lib/cn'
+import { usePeopleDirectory } from '../lib/people/usePeopleDirectory'
 
 const pageClasses = cn(
   'relative z-[1] mx-auto pb-16 pt-[clamp(1.6rem,4vw,2.8rem)]',
@@ -22,6 +23,7 @@ const gridClasses = cn(
 
 export function PeoplePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { people, peopleBySlug } = usePeopleDirectory()
   const detailRef = useRef<HTMLElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const lastSelectedSlug = useRef<string | null>(null)
@@ -36,9 +38,10 @@ export function PeoplePage() {
 
     lastSelectedSlug.current = selectedPerson.slug
 
-    window.setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 80)
+    return () => window.clearTimeout(timeout)
   }, [selectedPerson])
 
   const openPerson = (person: PersonRecord) => {

@@ -12,6 +12,7 @@
   }
 
   html {
+    position: relative;
     background:
       radial-gradient(circle at 15% 18%, var(--glow), transparent 28%),
       linear-gradient(180deg, var(--bg-layer), var(--bg));
