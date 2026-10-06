@@ -15,7 +15,7 @@ import { PhdProjectPage } from '../pages/PhdProjectPage'
 import { PublishedProjectPage } from '../pages/PublishedProjectPage'
 import { lazy, Suspense } from 'react'
 import { cn } from '../lib/cn'
-import { detectInitialTheme, themeStorageKey, toggleTheme, type Theme } from './theme'
+import { detectInitialTheme, toggleTheme, type Theme } from './theme'
 
 const PortalPage = lazy(() => import('../pages/portal/PortalPage').then(module => ({ default: module.PortalPage })))
 
@@ -43,7 +43,6 @@ export function AppShell() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    window.localStorage.setItem(themeStorageKey, theme)
   }, [theme])
 
   useEffect(() => {
