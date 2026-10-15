@@ -24,8 +24,28 @@ const paragraphClasses =
   'm-0 text-[0.98rem] leading-[1.72] text-[color-mix(in_srgb,var(--text)_94%,transparent)]'
 
 export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
+  const introduction = (
+    <motion.div
+      variants={reveal}
+      className={cn(
+        bubbleClasses,
+        'people-bio-scroll col-span-full max-h-[min(13.75rem,27vh)] gap-[0.9rem] overflow-auto pr-[0.9rem] [scrollbar-color:color-mix(in_srgb,var(--accent)_34%,transparent)_color-mix(in_srgb,var(--panel-strong)_48%,transparent)] [scrollbar-gutter:stable] [scrollbar-width:thin]',
+        'max-[900px]:col-auto max-[700px]:max-h-none',
+        props.person.scrollableDesktopDetails && 'max-h-none'
+      )}
+    >
+      <span className={labelClasses}>Introduction</span>
+      {props.person.bioParagraphs.map((paragraph) => (
+        <p key={paragraph} className={paragraphClasses}>
+          {paragraph}
+        </p>
+      ))}
+    </motion.div>
+  )
+
   return (
     <>
+      {props.person.introductionFirst ? introduction : null}
       {props.person.emails.length > 0 || props.person.website ? (
         <motion.div variants={reveal} className={bubbleClasses}>
           <span className={labelClasses}>Email</span>
@@ -59,21 +79,7 @@ export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
         <p className={paragraphClasses}>{props.person.researchInterest}</p>
       </motion.div>
 
-      <motion.div
-        variants={reveal}
-        className={cn(
-          bubbleClasses,
-          'people-bio-scroll col-span-full max-h-[min(13.75rem,27vh)] gap-[0.9rem] overflow-auto pr-[0.9rem] [scrollbar-color:color-mix(in_srgb,var(--accent)_34%,transparent)_color-mix(in_srgb,var(--panel-strong)_48%,transparent)] [scrollbar-gutter:stable] [scrollbar-width:thin]',
-          'max-[900px]:col-auto max-[700px]:max-h-none'
-        )}
-      >
-        <span className={labelClasses}>Introduction</span>
-        {props.person.bioParagraphs.map((paragraph) => (
-          <p key={paragraph} className={paragraphClasses}>
-            {paragraph}
-          </p>
-        ))}
-      </motion.div>
+      {!props.person.introductionFirst ? introduction : null}
     </>
   )
 }

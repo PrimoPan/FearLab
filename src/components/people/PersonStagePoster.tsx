@@ -9,8 +9,13 @@ type PersonStagePosterProps = {
 }
 
 export function PersonStagePoster(props: PersonStagePosterProps) {
+  const photoMotion = props.person.photoMotion !== false
+
   return (
-    <div className="relative h-full min-h-[inherit] overflow-hidden bg-[radial-gradient(circle_at_50%_36%,color-mix(in_srgb,var(--glow)_32%,transparent),transparent_54%),color-mix(in_srgb,var(--bg-layer)_54%,transparent)] [grid-area:1/1] max-[700px]:min-h-0 max-[700px]:[grid-area:auto]">
+    <div className={cn(
+      'relative h-full min-h-[inherit] overflow-hidden bg-[radial-gradient(circle_at_50%_36%,color-mix(in_srgb,var(--glow)_32%,transparent),transparent_54%),color-mix(in_srgb,var(--bg-layer)_54%,transparent)] [grid-area:1/1] max-[700px]:min-h-0 max-[700px]:[grid-area:auto]',
+      props.person.mobilePhotoAspectRatio && 'max-[700px]:h-auto max-[700px]:aspect-[var(--person-mobile-photo-aspect)]'
+    )}>
       {props.person.photoContain ? (
         <motion.img
           className="absolute -inset-[6%] h-[112%] w-[112%] object-cover [filter:blur(26px)_saturate(0.88)_brightness(var(--person-backdrop-brightness,0.9))] [object-position:var(--person-photo-position)] [will-change:transform] opacity-[0.68]"
@@ -37,8 +42,10 @@ export function PersonStagePoster(props: PersonStagePosterProps) {
         )}
         src={props.person.lifePhoto}
         alt={props.person.lifePhotoAlt}
-        initial={{ scale: props.photoScaleStart, y: 12 }}
-        animate={{ scale: [props.photoScaleStart, props.photoScaleEnd], y: [12, -46] }}
+        initial={{ scale: props.photoScaleStart, y: photoMotion ? 12 : 0 }}
+        animate={photoMotion
+          ? { scale: [props.photoScaleStart, props.photoScaleEnd], y: [12, -46] }
+          : { scale: props.photoScaleStart, y: 0 }}
         transition={{
           duration: 16,
           ease: 'easeInOut',

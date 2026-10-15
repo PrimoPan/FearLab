@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { people as curatedPeople, type PersonGroupKey, type PersonRecord } from '../../data/people'
+import { applyPersonPresentation } from '../../data/people/presentation'
 
 const roleOrder: PersonGroupKey[] = ['faculty', 'phd', 'mphil', 'ra', 'intern']
 const requiredStrings = [
@@ -48,7 +49,7 @@ export function usePeopleDirectory() {
   return useMemo(() => {
     const records = new Map(curatedPeople.map(person => [person.slug, person]))
     for (const person of approvedPeople) {
-      if (!records.has(person.slug)) records.set(person.slug, person)
+      if (!records.has(person.slug)) records.set(person.slug, applyPersonPresentation(person))
     }
     const people = [...records.values()].sort((left, right) =>
       roleOrder.indexOf(left.groupKey) - roleOrder.indexOf(right.groupKey) ||

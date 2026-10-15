@@ -30,6 +30,10 @@ export type PersonRecord = {
   backdropBrightness?: number
   desktopPanelWidth?: string
   desktopCopyWidth?: string
+  mobilePhotoAspectRatio?: string
+  introductionFirst?: boolean
+  scrollableDesktopDetails?: boolean
+  photoMotion?: boolean
 }
 
 export type PersonGroup = {

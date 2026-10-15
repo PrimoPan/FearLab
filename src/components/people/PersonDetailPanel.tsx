@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import type { PersonRecord } from '../../data/people'
 import { reveal, staggerIn } from '../../lib/animations'
+import { cn } from '../../lib/cn'
 import { PersonBackButton } from './PersonBackButton'
 import { PersonInfoBubbles } from './PersonInfoBubbles'
 import { PersonStageHeading } from './PersonStageHeading'
@@ -26,7 +27,10 @@ export function PersonDetailPanel(props: PersonDetailPanelProps) {
       </motion.div>
 
       <motion.div
-        className="grid min-h-0 content-end gap-[0.8rem] self-end [grid-template-columns:repeat(2,minmax(0,1fr))] max-[900px]:grid-cols-1"
+        className={cn(
+          'grid min-h-0 content-end gap-[0.8rem] self-end [grid-template-columns:repeat(2,minmax(0,1fr))] max-[900px]:grid-cols-1',
+          props.person.scrollableDesktopDetails && 'auto-rows-max content-start self-stretch overflow-y-auto overscroll-contain pr-1 [scrollbar-color:color-mix(in_srgb,var(--accent)_34%,transparent)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]'
+        )}
         variants={staggerIn}
       >
         <PersonInfoBubbles person={props.person} />

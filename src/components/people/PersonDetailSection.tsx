@@ -33,6 +33,7 @@ export function PersonDetailSection(props: PersonDetailSectionProps) {
     '--person-panel-shift': props.person.desktopPanelShift ?? '0px',
     '--person-panel-width': props.person.desktopPanelWidth ?? '31rem',
     '--person-copy-width': props.person.desktopCopyWidth ?? '28rem',
+    '--person-mobile-photo-aspect': props.person.mobilePhotoAspectRatio,
     '--person-photo-brightness': props.person.photoBrightness ?? 1.05,
     '--person-backdrop-brightness': props.person.backdropBrightness ?? 0.9
   } as CSSProperties
@@ -63,7 +64,10 @@ export function PersonDetailSection(props: PersonDetailSectionProps) {
       }}
       transition={{ duration: 0.62, ease: easeCurve }}
     >
-      <section className="relative isolate grid h-[calc(100svh-var(--site-header-height))] min-h-[calc(100svh-var(--site-header-height))] bg-[color-mix(in_srgb,var(--bg-layer)_42%,transparent)] max-[700px]:min-h-[calc(100svh-6.8rem)] max-[700px]:grid-rows-[auto_minmax(0,1fr)]">
+      <section className={cn(
+        'relative isolate grid h-[calc(100svh-var(--site-header-height))] min-h-[calc(100svh-var(--site-header-height))] bg-[color-mix(in_srgb,var(--bg-layer)_42%,transparent)] max-[700px]:min-h-[calc(100svh-6.8rem)] max-[700px]:grid-rows-[auto_minmax(0,1fr)]',
+        props.person.mobilePhotoAspectRatio && 'max-[700px]:h-auto max-[700px]:min-h-0 max-[700px]:grid-rows-[auto_auto]'
+      )}>
         <div
           className={cn(
             'relative z-[1] mx-auto flex h-full min-h-0 items-stretch pt-[clamp(1rem,2.4vw,1.8rem)] [grid-area:1/1]',
