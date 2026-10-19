@@ -23,6 +23,10 @@ virtual host. It leaves the host's global Node installation unchanged.
 | Dedicated Node runtime | `/opt/node-v22.23.1/bin/node` |
 | API service | `fearlab-portal.service`, bound to `127.0.0.1:3002` |
 | Private SQLite database and uploads | `/var/lib/fearlab-portal` |
+| Private media configuration | `/etc/fearlab/media.env` (`root:root`, mode `0600`) |
+| Shared COS bucket and region | `lingolift-1335262060`, `ap-guangzhou` |
+| FEAR Lab object namespace | `fearlab/` (public built images; private uploads and archives) |
+| Image base URL | `https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com/fearlab` |
 | Timestamped backups | `/home/ubuntu/fearlab-backups/<release-id>` |
 | Nginx virtual host | `/etc/nginx/sites-available/fearlab.conf` |
 
@@ -37,8 +41,12 @@ preserve existing accounts, passwords, submissions and media.
 `.github/workflows/deploy.yml` is the canonical deployment procedure. A push to
 `main` or a manual workflow dispatch runs these steps:
 
-1. Install the exact `.nvmrc` Node version, then run `npm ci`, `npm run check`,
-   `npm run test:api` and `npm run build` on the CI runner.
+1. Install the exact `.nvmrc` Node version, then run `npm ci`,
+   `npm ci --prefix server --omit=dev`, `npm run check`, `npm run test:api` and
+   `npm run build` on the CI runner. The server has its own package and lockfile
+   for the production COS SDK. Build with
+   `FEARLAB_IMAGE_BASE_URL=https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com/fearlab`;
+   this value is public, while COS credentials never enter the runner.
 2. Upload a source archive excluding Git internals, `.env` files, local private
    data, build output, local tooling, temporary files and generated QA artifacts.
 3. Acquire an exclusive deployment lock. Require the existing Nginx installation,
@@ -46,15 +54,24 @@ preserve existing accounts, passwords, submissions and media.
 4. If needed, install Node 22.23.1 under `/opt/node-v22.23.1` from the official
    Node distribution, validating the archive against its published SHA-256 sum.
    The global Node binary and packages used by other sites are not replaced.
-5. Extract into an isolated staging directory and repeat all four build/test
-   gates on the server before changing the active application.
+5. Extract into an isolated staging directory, install both dependency sets and
+   repeat the build/test gates with the same image base URL. Generate a
+   `--dist-only` image manifest in the private backup directory, upload its built
+   images to COS, and require object size and SHA-256 metadata verification.
+   Run `server/migrate-media.mjs --data-dir /var/lib/fearlab-portal --apply
+   --verify-downloads` to migrate or reuse dynamic images without overwriting
+   conflicts. Require private uploads to deny anonymous access with `403` and
+   signed COS URL downloads to match local files. Before any service or release
+   switch, download every public static image through its direct COS HTTPS URL
+   and verify its bytes. Failure leaves the active release unchanged.
 6. Fetch and validate both official Cloudflare IP-range lists. Generate trusted
    real-IP directives only inside the FEAR Lab HTTPS server block.
 7. Back up existing source, static assets, API code, Nginx configuration and
    service definition. Record the previous symlink targets and service state.
 8. Stop the existing portal service, if present, and privately archive the whole
    database/WAL/uploads directory. Install the new API release and restart the
-   dedicated systemd service. Keep persistent data in place.
+   dedicated systemd service. The API release includes the installed
+   `server/node_modules` and its package/lockfile. Keep persistent data in place.
 9. Require `/api/public/people` to return a valid JSON array from the new local
    service before publishing the frontend. Install and validate the FEAR Lab
    Nginx configuration, switch the static symlink, then reload Nginx.
@@ -78,6 +95,62 @@ Required repository secrets are `FEARLAB_HOST`, `FEARLAB_USER`,
 `FEARLAB_SSH_KEY`, and optional `FEARLAB_PORT`. The shared host must already have
 Nginx, curl, tar/xz, SHA-256 tooling, Python 3, flock and systemd. This workflow
 does not install OS packages or remove unrelated Nginx sites.
+
+## Direct COS image storage
+
+Images use Tencent COS's existing bucket hostname directly. This configuration
+does not require a new domain, DNS change, CDN service or TypeA authentication.
+Keep `MEDIA_CDN_BASE_URL` and `MEDIA_CDN_AUTH_KEY` unset.
+
+The shared `lingolift-1335262060` bucket already has a public bucket ACL. Leave
+other applications' settings and objects unchanged. Only built website images
+under `fearlab/assets/` receive explicit `public-read` object ACLs. Dynamic
+uploads under `fearlab/uploads/<UUID>.blob` and original-image archives under
+`fearlab/archives/<SHA256>.blob` use explicit `private` ACLs. Restrict the service
+principal's object permissions to `fearlab/`; allow only the operations needed
+for upload, metadata/read verification, `GetObjectACL`/`PutObjectACL` and cleanup,
+plus read access to bucket versioning. Migration requires versioning to be disabled and
+refuses conflicting objects. Anonymous requests to every migrated private upload
+must return `403`, regardless of the public bucket default.
+
+Provision `/etc/fearlab/media.env` separately as a regular `root:root` file with
+mode `0600`. Its parent directory should also be root-owned and private. Use
+plain `NAME=value` assignments compatible with both Node's `--env-file` and
+systemd's `EnvironmentFile`; do not put shell commands in the file. Required
+configuration is:
+
+```dotenv
+PORTAL_MEDIA_STORAGE=cos
+COS_BUCKET=lingolift-1335262060
+COS_REGION=ap-guangzhou
+COS_SECRET_ID=<dedicated-service-secret-id>
+COS_SECRET_KEY=<dedicated-service-secret-key>
+```
+
+`COS_SECURITY_TOKEN` is optional when using temporary credentials; arrange their
+renewal before expiry. The service loads the file through
+`EnvironmentFile=-/etc/fearlab/media.env`. Deployment and rollback never write,
+archive or replace it. Do not commit this file, print it in logs, copy it into a
+release or add its secrets to Vite environment variables. Uploads and
+verification run on the server with `node --env-file`, so secrets are not passed
+as command arguments or sent to the CI runner.
+
+The frontend build base includes `fearlab/`, while manifest object keys already
+contain that prefix. Do not append it twice. Deployment migrates and verifies
+existing dynamic uploads each time, including local fallback files from a prior
+release. It preserves every `/api/media/<UUID>` reference in project JSON and
+member profiles. The API checks authorization and redirects permitted requests
+to a COS URL signed for 300 seconds. Unapproved projects and registrations remain
+private. The API redirect and all other `/api/` responses retain `Cache-Control: no-store`;
+the image response has its own cache policy. Keep local uploaded files for
+fallback and recovery. SQLite, account data, private submissions and sessions
+stay on the application server.
+
+Only static images present in `dist` are uploaded by automated deployment. Unused
+source photos, old source variants and private archives must not be copied to the public
+static namespace. The static uploader runs before activation and does not delete
+objects; a failed deployment may leave harmless content-addressed objects in COS.
+Retain old objects while an older frontend release can still be restored.
 
 ## Explicit manual release or recovery
 
@@ -119,6 +192,15 @@ previous frontend/API releases and configuration from the manifest/backup set,
 restore their symlinks and service file, run `systemctl daemon-reload`, restart
 the service, verify `/api/public/people`, then run `nginx -t` and reload Nginx.
 Verify the public domain again. Keep the database and upload directory intact.
+
+To temporarily restore local media reads and writes, change only
+`PORTAL_MEDIA_STORAGE=local` in the root-owned media configuration and restart the
+service. This setting ignores stale cloud credentials. It does not change the
+COS URLs already built into the frontend: restore a frontend release built with
+local image URLs as well if COS is unavailable. Keep local image assets and
+uploads throughout the migration. A later automated deployment requires the COS
+settings and media verification to pass again; never restore
+an older credential file as part of a code rollback.
 
 Restoring private data is a separate recovery operation: stop the API, preserve
 a new backup of the current complete data directory, restore the chosen complete

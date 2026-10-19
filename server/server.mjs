@@ -1,8 +1,10 @@
 import { createApp } from './app.mjs';
+import { mediaConfigFromEnv } from './media-store.mjs';
 const port = Number(process.env.PORT ?? 3002);
 const host = process.env.HOST ?? '127.0.0.1';
 const app = await createApp({
   dataDir: process.env.PORTAL_DATA_DIR ?? '.local-data',
+  mediaConfig: mediaConfigFromEnv(),
   secureCookies: process.env.NODE_ENV === 'production',
   trustProxy: process.env.PORTAL_TRUST_PROXY === 'loopback' ? 'loopback' : undefined,
   ...(process.env.PORTAL_ORIGINS ? { allowedOrigins: process.env.PORTAL_ORIGINS.split(',').map(s => s.trim()).filter(Boolean) } : {}),

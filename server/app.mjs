@@ -1,12 +1,12 @@
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { join, resolve } from 'node:path';
-import { readFile, writeFile, unlink } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { openStore, publicUser, projectFromRow } from './store.mjs';
 import { opaqueToken, digest, hashPassword, verifyPassword, sameToken, sessionCookie, readSessionCookie, LoginLimiter, requestIp } from './security.mjs';
 import { ApiError, fail, plainObject, projectData, mediaIds, readyToSubmit, version } from './validation.mjs';
 import { decodeUpload } from './images.mjs';
 import { createRegistrationService } from './registrations.mjs';
+import { createMediaStore } from './media-store.mjs';
 
 async function jsonBody(req, max = 1024 * 1024) {
   if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) fail(415, 'Use application/json.');
@@ -26,6 +26,9 @@ export async function createApp(options = {}) {
   const dataDir = resolve(options.dataDir ?? '.local-data');
   const db = await openStore(dataDir);
   const now = options.now ?? Date.now;
+  let storage;
+  try { storage = options.storage ?? await createMediaStore({ dataDir, config: options.mediaConfig, now, onError: options.onError }); }
+  catch (error) { db.close(); throw error; }
   const timestamp = () => new Date(now()).toISOString();
   const allowedOrigins = new Set(options.allowedOrigins ?? ['http://127.0.0.1:3001', 'http://localhost:3001', 'http://127.0.0.1:3002', 'http://localhost:3002']);
   const secureCookies = options.secureCookies ?? false;
@@ -72,7 +75,7 @@ export async function createApp(options = {}) {
     return db.prepare('SELECT published.snapshot, projects.sort_order FROM published JOIN projects ON projects.id=published.project_id ORDER BY projects.sort_order, published.published_at DESC').all()
       .map(row => ({ ...JSON.parse(row.snapshot), order: row.sort_order }));
   }
-  const registrations = createRegistrationService({ db, dataDir, now, jsonBody, json, authenticate, getRequestIp });
+  const registrations = createRegistrationService({ db, storage, now, jsonBody, json, authenticate, getRequestIp });
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
@@ -135,8 +138,13 @@ export async function createApp(options = {}) {
         const user = getSession(req), visible = isPublishedMedia(media.id);
         const ownProjectImage = user && db.prepare('SELECT data FROM projects WHERE owner_id=?').all(user.id).some(row => mediaIds(JSON.parse(row.data)).includes(media.id));
         if (!visible && (!user || user.role !== 'admin' && user.id !== media.owner_id && !ownProjectImage)) fail(404, 'Image not found.');
+        const location = await storage.redirect(media);
+        if (location) {
+          res.writeHead(302, { Location: location, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' });
+          return res.end();
+        }
         let bytes;
-        try { bytes = await readFile(join(dataDir, 'uploads', media.id)); } catch { fail(404, 'Image not found.'); }
+        try { bytes = await storage.read(media.id); } catch { fail(404, 'Image not found.'); }
         res.writeHead(200, { 'Content-Type': media.mime, 'Content-Length': bytes.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", 'Content-Disposition': 'inline', 'Cross-Origin-Resource-Policy': 'same-origin' });
         return res.end(bytes);
       }
@@ -144,10 +152,9 @@ export async function createApp(options = {}) {
         const user = authenticate(req), body = await jsonBody(req, 12 * 1024 * 1024);
         if (typeof body.name !== 'string' || body.name.length > 200) fail(400, 'An image filename is required.');
         const { bytes, mime } = decodeUpload(body.data), id = randomUUID();
-        const file = join(dataDir, 'uploads', id);
-        await writeFile(file, bytes, { mode: 0o600, flag: 'wx' });
+        await storage.save({ id, bytes, mime });
         try { db.prepare('INSERT INTO uploads VALUES(?,?,?,?,?,?)').run(id, user.id, body.name, mime, bytes.length, timestamp()); }
-        catch (error) { await unlink(file); throw error; }
+        catch (error) { await storage.remove(id); throw error; }
         return json(res, 201, { url: `/api/media/${id}` });
       }
       if (path === '/api/projects/order' && method === 'PATCH') {

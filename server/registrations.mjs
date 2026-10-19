@@ -1,6 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { join } from 'node:path';
-import { writeFile, unlink } from 'node:fs/promises';
 import { fail, plainObject, safeLink } from './validation.mjs';
 import { decodeUpload } from './images.mjs';
 import { hashPassword, LoginLimiter } from './security.mjs';
@@ -39,7 +37,7 @@ function personFromProfile(username, profile) {
     storySide: 'right', photoPositionDesktop: '50% 50%', photoPositionMobile: '50% 50%' };
 }
 
-export function createRegistrationService({ db, dataDir, now, jsonBody, json, authenticate, getRequestIp }) {
+export function createRegistrationService({ db, storage, now, jsonBody, json, authenticate, getRequestIp }) {
   const limiter = new LoginLimiter(now);
   const timestamp = () => new Date(now()).toISOString();
   const rowById = id => db.prepare('SELECT * FROM registrations WHERE id=?').get(id);
@@ -76,9 +74,8 @@ export function createRegistrationService({ db, dataDir, now, jsonBody, json, au
     profile.lifePhoto = `/api/media/${images[1].id}`;
     try {
       for (const image of images) {
-        const file = join(dataDir, 'uploads', image.id);
-        await writeFile(file, image.bytes, { mode: 0o600, flag: 'wx' });
-        written.push(file);
+        await storage.save(image);
+        written.push(image.id);
       }
       db.exec('BEGIN IMMEDIATE');
       try {
@@ -89,7 +86,7 @@ export function createRegistrationService({ db, dataDir, now, jsonBody, json, au
         db.exec('COMMIT');
       } catch (error) { db.exec('ROLLBACK'); throw error; }
     } catch (error) {
-      await Promise.all(written.map(file => unlink(file).catch(() => {})));
+      await Promise.all(written.map(imageId => storage.remove(imageId)));
       throw error;
     }
     json(res, 201, { registration: { id, status: 'pending', username } });

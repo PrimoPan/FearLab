@@ -26,6 +26,7 @@ jobs:
       NGINX_SITE: /etc/nginx/sites-available/fearlab.conf
       DOMAIN: fearlab.space
       WWW_DOMAIN: www.fearlab.space
+      FEARLAB_IMAGE_BASE_URL: https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com/fearlab
 
     steps:
       - name: Check out repository
@@ -38,13 +39,18 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm ci --prefix server --omit=dev
 
       - name: Run type check
         run: npm run check
 
       - name: Test portal API
         run: npm run test:api
+
+      - name: Test static media migration
+        run: node --test scripts/media/*.test.mjs
 
       - name: Build site
         run: npm run build
@@ -97,6 +103,9 @@ jobs:
           NODE_ROOT="/opt/node-v${NODE_VERSION}"
           API_ROOT="/opt/fearlab-api"
           DATA_DIR="/var/lib/fearlab-portal"
+          MEDIA_ENV_FILE="/etc/fearlab/media.env"
+          IMAGE_ORIGIN="https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com"
+          IMAGE_BASE_URL="${IMAGE_ORIGIN}/fearlab"
           SERVICE="fearlab-portal.service"
           SERVICE_FILE="/etc/systemd/system/${SERVICE}"
           ENABLED_SITE="/etc/nginx/sites-enabled/fearlab.conf"
@@ -170,10 +179,78 @@ jobs:
             cd "$STAGE_DIR"
             echo "Validating with Node $(node -v) and npm $(npm -v)"
             npm ci
+            npm ci --prefix server --omit=dev
             npm run check
             npm run test:api
-            npm run build
+            node --test scripts/media/*.test.mjs
+            FEARLAB_IMAGE_BASE_URL="$IMAGE_BASE_URL" npm run build
           )
+
+          # Media configuration stays root-owned on the server, outside releases,
+          # archives and runner secrets. Never replace it during deploy/rollback.
+          sudo python3 - "$MEDIA_ENV_FILE" <<'PY'
+          import os
+          import stat
+          import sys
+          try:
+              info = os.lstat(sys.argv[1])
+          except OSError:
+              raise SystemExit('Configure /etc/fearlab/media.env before deploying COS image URLs.')
+          if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_gid != 0 or stat.S_IMODE(info.st_mode) != 0o600:
+              raise SystemExit('/etc/fearlab/media.env must be a regular root:root file with mode 0600.')
+          PY
+          sudo "${NODE_ROOT}/bin/node" --env-file="$MEDIA_ENV_FILE" --input-type=module \
+            - "$STAGE_DIR" <<'JS'
+          import { join } from 'node:path';
+          import { pathToFileURL } from 'node:url';
+          try {
+            const { mediaConfigFromEnv } = await import(pathToFileURL(join(process.argv[2], 'server/media-store.mjs')));
+            const config = mediaConfigFromEnv();
+            if (config.mode !== 'cos' || config.bucket !== 'lingolift-1335262060' ||
+                config.region !== 'ap-guangzhou') throw new Error();
+          } catch {
+            console.error('Configure the production COS bucket and region; leave MEDIA_CDN_* unset for direct COS links.');
+            process.exitCode = 1;
+          }
+          JS
+          (
+            cd "$STAGE_DIR"
+            node scripts/media/build-image-manifest.mjs --dist dist --dist-only \
+              --output "${BACKUP_DIR}/static-images.json"
+            sudo "${NODE_ROOT}/bin/node" --env-file="$MEDIA_ENV_FILE" \
+              scripts/media/migrate-static-images.mjs \
+              --manifest "${BACKUP_DIR}/static-images.json" --dist-only --apply
+            sudo "${NODE_ROOT}/bin/node" --env-file="$MEDIA_ENV_FILE" \
+              server/migrate-media.mjs --data-dir "$DATA_DIR" --apply --verify-downloads
+          )
+
+          # Dynamic migration above verifies private ACLs and signed downloads.
+          # Check the public image URLs before switching any active release.
+          cat > "${BACKUP_DIR}/verify-static-images.mjs" <<'JS'
+          import { createHash } from 'node:crypto';
+          import { readFile } from 'node:fs/promises';
+          const [manifestPath, origin] = process.argv.slice(2);
+          const fail = message => { throw new Error(message); };
+          const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+          try {
+            const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+            if (!Array.isArray(manifest.images) || !manifest.images.length) fail('The static image manifest is empty.');
+            for (const image of manifest.images) {
+              if (image.kind !== 'build' || !image.objectKey.startsWith('fearlab/assets/')) fail('Only built static images in the FEAR Lab namespace may be publicly cached.');
+              const path = image.objectKey.split('/').map(encodeURIComponent).join('/');
+              const response = await fetch(`${origin}/${path}`, { redirect: 'manual', signal: AbortSignal.timeout(30000) });
+              if (response.status !== 200) fail(`Static COS image returned HTTP ${response.status}.`);
+              const bytes = Buffer.from(await response.arrayBuffer());
+              if (bytes.length !== image.size || sha256(bytes) !== image.sha256) fail('Static COS image checksum mismatch.');
+            }
+            console.log(`Verified ${manifest.images.length} public static COS images.`);
+          } catch (error) {
+            console.error(`Static COS verification failed before activation: ${error.message}`);
+            process.exitCode = 1;
+          }
+          JS
+          node "${BACKUP_DIR}/verify-static-images.mjs" \
+            "${BACKUP_DIR}/static-images.json" "$IMAGE_ORIGIN"
 
           # Accept proxy client identities only from Cloudflare's complete, validated lists.
           # Scope real_ip directives to this site's HTTPS block, not other hosted sites.
@@ -269,6 +346,8 @@ jobs:
           sudo install -d -m 755 "$RELEASE_ROOT" "$API_ROOT" "${API_ROOT}/releases"
           sudo mkdir "$FRONT_RELEASE" "$API_RELEASE"
           sudo cp -a "${STAGE_DIR}/dist/." "$FRONT_RELEASE/"
+          # Includes server/package{,-lock}.json and the exact production SDK
+          # dependencies installed above; no credential file enters the release.
           sudo cp -a "${STAGE_DIR}/server" "$API_RELEASE/"
           sudo chown -R root:root "$FRONT_RELEASE" "$API_RELEASE"
           sudo find "$FRONT_RELEASE" "$API_RELEASE" -type d -exec chmod 755 {} +
@@ -308,6 +387,7 @@ jobs:
           Environment=PORTAL_DATA_DIR=${DATA_DIR}
           Environment=PORTAL_ORIGINS=https://${DOMAIN}
           Environment=PORTAL_TRUST_PROXY=loopback
+          EnvironmentFile=-${MEDIA_ENV_FILE}
           Restart=on-failure
           RestartSec=5
           TimeoutStopSec=40
