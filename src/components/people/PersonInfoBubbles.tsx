@@ -5,6 +5,7 @@ import { cn } from '../../lib/cn'
 
 type PersonInfoBubblesProps = {
   person: PersonRecord
+  expanded?: boolean
 }
 
 const bubbleClasses = cn(
@@ -31,7 +32,8 @@ export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
         bubbleClasses,
         'people-bio-scroll col-span-full max-h-[min(13.75rem,27vh)] gap-[0.9rem] overflow-auto pr-[0.9rem] [scrollbar-color:color-mix(in_srgb,var(--accent)_34%,transparent)_color-mix(in_srgb,var(--panel-strong)_48%,transparent)] [scrollbar-gutter:stable] [scrollbar-width:thin]',
         'max-[900px]:col-auto max-[700px]:max-h-none',
-        props.person.scrollableDesktopDetails && 'max-h-none'
+        props.person.scrollableDesktopDetails && 'max-h-none',
+        props.expanded && 'max-h-none overflow-visible'
       )}
     >
       <span className={labelClasses}>Introduction</span>

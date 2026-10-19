@@ -9,6 +9,7 @@ import { PersonDetailMobileIntro } from './PersonDetailMobileIntro'
 import { PersonDetailPanel } from './PersonDetailPanel'
 import { PersonInfoBubbles } from './PersonInfoBubbles'
 import { PersonStagePoster } from './PersonStagePoster'
+import { PersonSplitDetailSection } from './PersonSplitDetailSection'
 
 type PersonDetailSectionProps = {
   person: PersonRecord
@@ -19,6 +20,10 @@ type PersonDetailSectionProps = {
 export function PersonDetailSection(props: PersonDetailSectionProps) {
   const storyRef = useRef<HTMLElement | null>(null)
   const isMobile = useMediaQuery('(max-width: 700px)')
+
+  if (props.person.detailLayout === 'split') {
+    return <PersonSplitDetailSection {...props} />
+  }
 
   const photoScaleStart = isMobile
     ? props.person.photoScaleStartMobile ?? props.person.photoScaleStart ?? 1

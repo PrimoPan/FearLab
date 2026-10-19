@@ -1,5 +1,5 @@
 import primoId from '../../../../assets/People/id/Primo.jpeg'
-import primoLife from '../../../../assets/People/photos/life/Primo-2026.jpg'
+import primoLife from '../../../../assets/Projects/phd/primo-mc2.jpg'
 import { paragraphs, tidyWebsite } from '../helpers'
 import type { PersonRecord } from '../types'
 
@@ -35,17 +35,10 @@ export const primoPan: PersonRecord = {
   idPhoto: primoId,
   lifePhoto: primoLife,
   lifePhotoAlt:
-    'Dongyijie Primo Pan standing beneath the Communication University of China emblem.',
+    'Dongyijie Primo Pan holding an EEG cap beside a monitor displaying brainwave recordings in the laboratory.',
+  detailLayout: 'split',
   storySide: 'left',
-  photoContain: true,
-  photoPositionDesktop: '68% 48%',
-  photoPositionMobile: '64% 50%',
-  photoBrightness: 1.05,
-  backdropBrightness: 0.9,
-  desktopPanelWidth: '34rem',
-  desktopCopyWidth: '32rem',
-  photoScaleStartDesktop: 1.04,
-  photoScaleEndDesktop: 1.08,
-  photoScaleStartMobile: 1.01,
-  photoScaleEndMobile: 1.05
+  photoPositionDesktop: '50% 50%',
+  photoPositionMobile: '50% 50%',
+  introductionFirst: true
 }

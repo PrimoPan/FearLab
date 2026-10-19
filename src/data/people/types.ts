@@ -34,6 +34,7 @@ export type PersonRecord = {
   introductionFirst?: boolean
   scrollableDesktopDetails?: boolean
   photoMotion?: boolean
+  detailLayout?: 'split'
 }
 
 export type PersonGroup = {
