@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, unlink } from 'node:fs/promises';
+import { readFile, open, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
 // Every dynamic object stays private and is accessed with a short-lived COS URL.
@@ -31,12 +31,14 @@ export function mediaConfigFromEnv(env = process.env) {
   return config;
 }
 
-export async function createMediaStore({ dataDir, config = { mode: 'local' }, cosClient, now = Date.now, onError = () => {} }) {
+export async function createMediaStore({ dataDir, config = { mode: 'local' }, cosClient, fetchHead = fetch, now = Date.now, onError = () => {} }) {
   const localPath = id => { mediaObjectKey(id); return join(dataDir, 'uploads', id); };
   let cos = cosClient;
   if (config.mode === 'cos' && !cos) {
     const { default: COS } = await import('cos-nodejs-sdk-v5');
-    cos = new COS({ SecretId: config.secretId, SecretKey: config.secretKey, ...(config.securityToken ? { SecurityToken: config.securityToken } : {}), Protocol: 'https:', Timeout: 5000, UploadCheckContentMd5: true });
+    // Only offline URL signing runs in the API. SDK network operations belong
+    // to the isolated replication process, where a transport crash is harmless.
+    cos = new COS({ SecretId: config.secretId, SecretKey: config.secretKey, ...(config.securityToken ? { SecurityToken: config.securityToken } : {}), Protocol: 'https:' });
   }
   const remote = config.mode === 'cos';
   const parameters = id => ({ Bucket: config.bucket, Region: config.region, Key: mediaObjectKey(id) });
@@ -47,32 +49,43 @@ export async function createMediaStore({ dataDir, config = { mode: 'local' }, co
     return value;
   }
   function report(message) { onError(new Error(message)); }
+  async function signedUrl(id, method = 'GET') {
+    const url = await new Promise((resolve, reject) => {
+      cos.getObjectUrl({ ...parameters(id), Method: method, Protocol: 'https:', Sign: true, Expires: MEDIA_URL_TTL_SECONDS }, (error, result) => error ? reject(error) : resolve(result.Url));
+    });
+    const parsed = new URL(url);
+    if (parsed.origin !== `https://${config.bucket}.cos.${config.region}.myqcloud.com` || parsed.pathname !== `/${mediaObjectKey(id)}` || !parsed.searchParams.has('q-signature')) throw new Error('Invalid media redirect.');
+    return url;
+  }
+  async function headObject(id) {
+    // A total deadline bounds read fallback even on a persistently slow link.
+    const response = await fetchHead(await signedUrl(id, 'HEAD'), {
+      method: 'HEAD', redirect: 'manual', credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(3000),
+    });
+    if (response.status !== 200) throw new Error('Cloud image unavailable.');
+    return response.headers;
+  }
   async function remove(id) {
     cache.delete(id);
-    const cleanup = await Promise.allSettled([
-      unlink(localPath(id)).catch(error => { if (error.code !== 'ENOENT') throw error; }),
-      ...(remote ? [cos.deleteObject(parameters(id))] : []),
-    ]);
-    if (cleanup.some(result => result.status === 'rejected')) report('Media cleanup was incomplete; an unreferenced private object may remain.');
+    // Only uncommitted local files are rolled back. The worker never sees these
+    // UUIDs, and a slow COS DELETE must not delay an API transaction failure.
+    await unlink(localPath(id)).catch(error => { if (error.code !== 'ENOENT') throw error; });
   }
   return {
     async save({ id, bytes, mime }) {
       if (!Buffer.isBuffer(bytes) || !supportedMimes.has(mime)) throw new Error('Invalid image storage request.');
-      // Do not remove an existing file/object if the local exclusive creation fails.
-      await writeFile(localPath(id), bytes, { mode: 0o600, flag: 'wx' });
-      if (!remote) return;
+      // The local file and the subsequent DB record form the durable copy queue.
+      // Existing UUIDs are immutable; never remove them on an EEXIST failure.
+      const file = await open(localPath(id), 'wx', 0o600);
       try {
-        await cos.putObject({ ...parameters(id), Body: bytes, ContentLength: bytes.length,
-          ContentType: mime, ContentDisposition: 'inline', ACL: 'private',
-          CacheControl: MEDIA_CACHE_CONTROL,
-          Headers: { 'x-cos-meta-sha256': createHash('sha256').update(bytes).digest('hex') },
-        });
-        remember(id, { available: true, checkedUntil: now() + 60000 });
+        await file.writeFile(bytes);
+        await file.sync();
+        const directory = await open(join(dataDir, 'uploads'), 'r');
+        try { await directory.sync(); } finally { await directory.close(); }
       } catch {
-        // A timed-out PUT may have reached COS, so clean up both sides.
-        await remove(id);
-        throw new Error('Cloud image storage is unavailable.');
-      }
+        await unlink(localPath(id)).catch(() => {});
+        throw new Error('The image could not be saved locally.');
+      } finally { await file.close(); }
     },
     remove,
     read: id => readFile(localPath(id)),
@@ -81,9 +94,9 @@ export async function createMediaStore({ dataDir, config = { mode: 'local' }, co
       try {
         let entry = cache.get(media.id);
         if (!entry || entry.checkedUntil <= now()) {
-          const head = await cos.headObject(parameters(media.id));
-          const length = Number(head.headers?.['content-length']);
-          if (length !== media.size) {
+          const head = await headObject(media.id);
+          const bytes = await readFile(localPath(media.id));
+          if (Number(head.get('content-length')) !== media.size || bytes.length !== media.size || head.get('content-type')?.split(';')[0] !== media.mime || head.get('x-cos-meta-sha256') !== createHash('sha256').update(bytes).digest('hex')) {
             remember(media.id, { available: false, checkedUntil: now() + 5000 });
             return null;
           }
@@ -93,10 +106,7 @@ export async function createMediaStore({ dataDir, config = { mode: 'local' }, co
         // Reusing a still-valid URL lets repeat page loads use browser caching;
         // every request to this method still passes the API authorization first.
         if (entry.url && entry.urlExpires > now() + 30000) return entry.url;
-        const url = await new Promise((resolve, reject) => {
-          cos.getObjectUrl({ ...parameters(media.id), Protocol: 'https:', Sign: true, Expires: MEDIA_URL_TTL_SECONDS }, (error, result) => error ? reject(error) : resolve(result.Url));
-        });
-        if (typeof url !== 'string' || !url.startsWith('https://')) throw new Error('Invalid media redirect.');
+        const url = await signedUrl(media.id);
         remember(media.id, { ...entry, url, urlExpires: now() + MEDIA_URL_TTL_SECONDS * 1000 });
         return url;
       } catch {

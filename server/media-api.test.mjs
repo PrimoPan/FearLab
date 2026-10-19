@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readdir } from 'node:fs/promises';
+import { mkdtemp, rm, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from './app.mjs';
-import { createMediaStore } from './media-store.mjs';
+import { createHash } from 'node:crypto';
+import { createMediaStore, mediaObjectKey } from './media-store.mjs';
 
 const origin = 'http://127.0.0.1:3001';
 const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j2fQAAAAASUVORK5CYII=';
@@ -15,17 +16,26 @@ const project = hero => ({ title: 'Published work', subtitle: 'Summary', authors
 
 async function setup(t) {
   const directory = await mkdtemp(join(tmpdir(), 'fearlab-cos-api-'));
-  const remote = new Map(), calls = { puts: 0, failPut: 0, redirects: 0 };
+  const remote = new Map(), calls = { puts: 0, redirects: 0 };
   const cos = {
-    async putObject(params) { calls.puts++; remote.set(params.Key, params); if (calls.puts === calls.failPut) throw new Error('PUT failed after write'); },
-    async deleteObject(params) { remote.delete(params.Key); },
-    async headObject(params) { const object = remote.get(params.Key); if (!object) throw new Error('Missing'); return { headers: { 'content-length': object.Body.length } }; },
+    async putObject() { calls.puts++; throw new Error('SDK write must not run in API'); },
+    async deleteObject() { throw new Error('SDK delete must not run in API'); },
+    async headObject() { throw new Error('SDK HEAD must not run in API'); },
     getObjectUrl(params, callback) {
       assert.equal(params.Sign, true); assert.equal(params.Expires, 300); assert.equal(params.Protocol, 'https:');
       callback(null, { Url: `https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com/${params.Key}?q-signature=test` });
     },
   };
-  const storage = await createMediaStore({ dataDir: directory, config: { mode: 'cos', bucket: 'lingolift-1335262060', region: 'ap-guangzhou' }, cosClient: cos });
+  const fetchHead = async url => {
+    const object = remote.get(new URL(url).pathname.slice(1));
+    if (!object) return new Response(null, { status: 404 });
+    return new Response(null, { status: 200, headers: {
+      'content-length': object.Body.length, 'content-type': object.ContentType,
+      'x-cos-meta-sha256': createHash('sha256').update(object.Body).digest('hex'),
+    } });
+  };
+  let cloudNow = Date.now();
+  const storage = await createMediaStore({ dataDir: directory, config: { mode: 'cos', bucket: 'lingolift-1335262060', region: 'ap-guangzhou' }, cosClient: cos, fetchHead, now: () => cloudNow });
   const redirect = storage.redirect;
   storage.redirect = media => { calls.redirects++; return redirect(media); };
   let app = await createApp({ dataDir: directory, allowedOrigins: [origin], storage }), base;
@@ -47,7 +57,12 @@ async function setup(t) {
     assert.equal(result.status, 200);
     return { ...result.body, cookie: result.cookie };
   }
-  return { app, directory, remote, calls, request, login, async rollback() {
+  return { app, directory, remote, calls, storage, request, login, async replicate() {
+    for (const row of app.db.prepare('SELECT id,mime FROM uploads UNION SELECT id,mime FROM registration_uploads').all()) {
+      remote.set(mediaObjectKey(row.id), { ACL: 'private', ContentType: row.mime, Body: await readFile(join(directory, 'uploads', row.id)) });
+    }
+    cloudNow += 6000;
+  }, async rollback() {
     await app.close(); app = await createApp({ dataDir: directory, allowedOrigins: [origin] }); await listen();
   } };
 }
@@ -70,6 +85,8 @@ test('COS redirects preserve draft/project/registration permissions, approval, d
   assert.equal((await request(image)).status, 404);
   assert.equal((await request(image, { auth: other })).status, 404);
   assert.equal(ctx.calls.redirects, 0, 'unauthorized requests must never reach the signer');
+  assert.equal((await request(image, { auth: owner })).status, 200, 'pending replication serves locally');
+  await ctx.replicate();
   signed(await request(image, { auth: owner }));
   signed(await request(image, { auth: admin }));
   let proposal = (await request('/api/projects', { method: 'POST', auth: owner, body: { project: project(image) } })).body.project;
@@ -83,6 +100,7 @@ test('COS redirects preserve draft/project/registration permissions, approval, d
   const registration = (await request('/api/registrations', { auth: admin })).body.registrations.find(row => row.id === registered.body.registration.id);
   assert.equal((await request(registration.profile.idPhoto)).status, 404);
   assert.equal((await request(registration.profile.lifePhoto, { auth: owner })).status, 404);
+  await ctx.replicate();
   signed(await request(registration.profile.idPhoto, { auth: admin }));
   assert.equal((await request(`/api/registrations/${registration.id}/review`, { method: 'POST', auth: admin, body: { version: 1, decision: 'approve', feedback: '' } })).status, 200);
   signed(await request(registration.profile.idPhoto));
@@ -102,23 +120,35 @@ test('COS redirects preserve draft/project/registration permissions, approval, d
   assert.equal((await request(newLocal.body.url, { auth: owner })).status, 200);
 });
 
-test('COS upload errors and database conflicts never commit incomplete media', async t => {
+test('offline COS never blocks successful uploads or registration; failed DB writes still roll back locally', async t => {
   const { app, directory, remote, calls, request, login } = await setup(t);
   const owner = await login('hongni');
-  calls.failPut = 1;
-  assert.equal((await request('/api/uploads', { method: 'POST', auth: owner, body: { name: 'failed.png', data: png } })).status, 500);
-  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM uploads').get().total, 0);
-  assert.equal(remote.size, 0); assert.deepEqual(await readdir(join(directory, 'uploads')), []);
-  calls.failPut = calls.puts + 2;
-  assert.equal((await request('/api/registrations', { method: 'POST', body: form('secondimagefails') })).status, 500);
-  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registrations').get().total, 0);
-  assert.equal(remote.size, 0); assert.deepEqual(await readdir(join(directory, 'uploads')), []);
+  const uploaded = await request('/api/uploads', { method: 'POST', auth: owner, body: { name: 'offline.png', data: png } });
+  assert.equal(uploaded.status, 201);
+  assert.equal((await request(uploaded.body.url, { auth: owner })).status, 200);
+  assert.equal((await request('/api/registrations', { method: 'POST', body: form('offlinecloud') })).status, 201);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM uploads').get().total, 1);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registrations').get().total, 1);
+  assert.equal(remote.size, 0); assert.equal(calls.puts, 0);
+  assert.equal((await readdir(join(directory, 'uploads'))).length, 3);
   app.db.exec("CREATE TRIGGER reject_upload BEFORE INSERT ON uploads BEGIN SELECT RAISE(FAIL, 'simulated database failure'); END");
   assert.equal((await request('/api/uploads', { method: 'POST', auth: owner, body: { name: 'database-fails.png', data: png } })).status, 500);
-  assert.equal(remote.size, 0); assert.deepEqual(await readdir(join(directory, 'uploads')), []);
+  assert.equal((await readdir(join(directory, 'uploads'))).length, 3);
   app.db.exec('DROP TRIGGER reject_upload');
   const responses = await Promise.all([1, 2].map(() => request('/api/registrations', { method: 'POST', body: form('duplicatecloud') })));
   assert.deepEqual(responses.map(item => item.status).sort(), [201, 409]);
-  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registrations').get().total, 1);
-  assert.equal(remote.size, 2); assert.equal((await readdir(join(directory, 'uploads'))).length, 2);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registrations').get().total, 2);
+  assert.equal(remote.size, 0); assert.equal(calls.puts, 0);
+  assert.equal((await readdir(join(directory, 'uploads'))).length, 5);
+});
+
+test('partial local registration failure leaves neither a registration nor its first image', async t => {
+  const { app, directory, storage, request } = await setup(t);
+  const save = storage.save;
+  let writes = 0;
+  storage.save = image => { if (++writes === 2) throw new Error('Local storage unavailable'); return save(image); };
+  assert.equal((await request('/api/registrations', { method: 'POST', body: form('localfailure') })).status, 500);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registrations').get().total, 0);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registration_uploads').get().total, 0);
+  assert.deepEqual(await readdir(join(directory, 'uploads')), []);
 });

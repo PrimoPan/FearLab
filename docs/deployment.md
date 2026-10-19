@@ -68,10 +68,11 @@ preserve existing accounts, passwords, submissions and media.
    real-IP directives only inside the FEAR Lab HTTPS server block.
 7. Back up existing source, static assets, API code, Nginx configuration and
    service definition. Record the previous symlink targets and service state.
-8. Stop the existing portal service, if present, and privately archive the whole
-   database/WAL/uploads directory. Install the new API release and restart the
-   dedicated systemd service. The API release includes the installed
-   `server/node_modules` and its package/lockfile. Keep persistent data in place.
+8. Stop the existing portal service and its media worker, if present, then
+   privately archive the whole database/WAL/uploads directory. Install the new
+   API release and restart the dedicated systemd service. The API release
+   includes the installed `server/node_modules`, its package/lockfile and the
+   worker code. Keep persistent data in place.
 9. Require `/api/public/people` to return a valid JSON array from the new local
    service before publishing the frontend. Install and validate the FEAR Lab
    Nginx configuration, switch the static symlink, then reload Nginx.
@@ -136,15 +137,37 @@ verification run on the server with `node --env-file`, so secrets are not passed
 as command arguments or sent to the CI runner.
 
 The frontend build base includes `fearlab/`, while manifest object keys already
-contain that prefix. Do not append it twice. Deployment migrates and verifies
-existing dynamic uploads each time, including local fallback files from a prior
-release. It preserves every `/api/media/<UUID>` reference in project JSON and
-member profiles. The API checks authorization and redirects permitted requests
-to a COS URL signed for 300 seconds. Unapproved projects and registrations remain
-private. The API redirect and all other `/api/` responses retain `Cache-Control: no-store`;
-the image response has its own cache policy. Keep local uploaded files for
-fallback and recovery. SQLite, account data, private submissions and sessions
-stay on the application server.
+contain that prefix. Do not append it twice. Deployment still migrates and
+verifies existing dynamic uploads each time, including local fallback files from
+a prior release. It preserves every `/api/media/<UUID>` reference in project JSON
+and member profiles.
+
+User uploads persist the local image and its database record before returning;
+they do not wait for a slow COS transfer. After the API begins listening,
+`server.mjs` starts an independent worker that scans the database's upload records
+and local originals, then copies missing images to private COS objects one at a
+time. These existing records form the durable work list, so a restart does not
+lose pending copies. The worker scans again every 60 seconds; if it crashes, the
+API process restarts it after 30 seconds. Transfer failures leave the database and
+local files intact. The API starts and passes health checks without waiting for
+COS, so API health alone does not prove that all cloud copies are complete.
+
+The API checks authorization before serving an image. When its COS copy is ready,
+the API redirects to a URL signed for 300 seconds; otherwise it serves the local
+copy. Unapproved projects and registrations remain private. The redirect and all
+other `/api/` responses retain `Cache-Control: no-store`; the image response has
+its own cache policy. Keep local uploaded files for pending transfers, fallback
+and recovery. SQLite, account data, private submissions and sessions stay on the
+application server.
+
+The worker uses the existing service's user, environment and process group; no
+separate systemd unit is needed. On shutdown, the API cancels worker restarts,
+terminates the child (forcing exit after five seconds if necessary), and drains
+in-flight local requests before exiting. The service's default
+`KillMode=control-group` also covers the child, and `TimeoutStopSec=40` remains in
+place. Deployment waits for `systemctl stop` before taking the data backup. An
+interrupted COS transfer is retried and checked for matching content; it never
+requires removing the local original or restoring an older database.
 
 Only static images present in `dist` are uploaded by automated deployment. Unused
 source photos, old source variants and private archives must not be copied to the public

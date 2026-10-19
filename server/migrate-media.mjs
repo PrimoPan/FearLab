@@ -12,7 +12,7 @@ export class MigrationError extends Error {}
 const stop = message => { throw new MigrationError(message); };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
-export async function inspectMediaInventory(dataDir) {
+export function readMediaRecords(dataDir) {
   let db, records, publicIds;
   try {
     // Do not call openStore: migrations must never initialize or change the DB.
@@ -35,29 +35,40 @@ export async function inspectMediaInventory(dataDir) {
     if (error instanceof MigrationError) throw error;
     stop('The media database cannot be read or contains invalid records.');
   } finally { db?.close(); }
-  const seen = new Set(), inventory = [];
+  const seen = new Set();
   for (const record of records) {
     let key;
     try { key = mediaObjectKey(record.id); } catch { stop('The media database contains an invalid image identity.'); }
     if (seen.has(record.id)) stop(`Duplicate media identity: ${record.id}.`);
     seen.add(record.id);
     if (!Number.isSafeInteger(record.size) || record.size <= 0 || record.size > 8 * 1024 * 1024) stop(`Invalid recorded image size: ${record.id}.`);
-    let file, bytes;
-    try {
-      file = await open(join(dataDir, 'uploads', record.id), constants.O_RDONLY | constants.O_NOFOLLOW);
-      const stat = await file.stat();
-      if (!stat.isFile() || stat.size !== record.size) stop(`Local image size mismatch: ${record.id}.`);
-      bytes = await file.readFile();
-    } catch (error) {
-      if (error instanceof MigrationError) throw error;
-      stop(`Local image cannot be read: ${record.id}.`);
-    } finally { await file?.close(); }
-    if (bytes.length !== record.size) stop(`Local image changed during validation: ${record.id}.`);
-    let decoded;
-    try { decoded = decodeUpload(bytes.toString('base64')); } catch { stop(`Local image content is invalid: ${record.id}.`); }
-    if (decoded.mime !== record.mime) stop(`Local image MIME mismatch: ${record.id}.`);
-    inventory.push({ ...record, key, bytes, sha256: hash(bytes), public: publicIds.has(record.id) });
+    record.key = key;
+    record.public = publicIds.has(record.id);
   }
+  return records;
+}
+
+export async function readMediaImage(dataDir, record) {
+  let file, bytes;
+  try {
+    file = await open(join(dataDir, 'uploads', record.id), constants.O_RDONLY | constants.O_NOFOLLOW);
+    const stat = await file.stat();
+    if (!stat.isFile() || stat.size !== record.size) stop(`Local image size mismatch: ${record.id}.`);
+    bytes = await file.readFile();
+  } catch (error) {
+    if (error instanceof MigrationError) throw error;
+    stop(`Local image cannot be read: ${record.id}.`);
+  } finally { await file?.close(); }
+  if (bytes.length !== record.size) stop(`Local image changed during validation: ${record.id}.`);
+  let decoded;
+  try { decoded = decodeUpload(bytes.toString('base64')); } catch { stop(`Local image content is invalid: ${record.id}.`); }
+  if (decoded.mime !== record.mime) stop(`Local image MIME mismatch: ${record.id}.`);
+  return { ...record, bytes, sha256: hash(bytes) };
+}
+
+export async function inspectMediaInventory(dataDir) {
+  const inventory = [];
+  for (const record of readMediaRecords(dataDir)) inventory.push(await readMediaImage(dataDir, record));
   return inventory;
 }
 

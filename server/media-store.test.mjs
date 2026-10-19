@@ -11,22 +11,22 @@ const bytes = Buffer.from('example image bytes');
 const cloudEnv = { PORTAL_MEDIA_STORAGE: 'cos', COS_BUCKET: 'lingolift-1335262060', COS_REGION: 'ap-guangzhou', COS_SECRET_ID: 'testSecretId', COS_SECRET_KEY: 'testSecretKey' };
 
 class FakeCos {
-  objects = new Map(); puts = []; deletes = []; heads = []; signatures = []; failPutAt = 0; failHeads = false; failDelete = false;
-  async putObject(parameters) {
-    this.puts.push(parameters);
-    this.objects.set(parameters.Key, parameters);
-    if (this.puts.length === this.failPutAt) throw new Error('Simulated PUT response lost');
-  }
-  async deleteObject(parameters) {
-    this.deletes.push(parameters.Key);
-    if (this.failDelete) throw new Error('Simulated delete failure');
-    this.objects.delete(parameters.Key);
-  }
-  async headObject(parameters) {
-    this.heads.push(parameters.Key);
-    const object = this.objects.get(parameters.Key);
-    if (!object || this.failHeads) throw new Error('Simulated unavailable object');
-    return { headers: { 'content-length': String(object.Body.length) } };
+  objects = new Map(); puts = []; deletes = []; heads = []; signatures = []; failHeads = false;
+  async putObject() { throw new Error('SDK network calls must not run in the API'); }
+  async deleteObject() { throw new Error('SDK network calls must not run in the API'); }
+  async headObject() { throw new Error('SDK network calls must not run in the API'); }
+  async fetchHead(url, options) {
+    assert.equal(options.method, 'HEAD'); assert.equal(options.redirect, 'manual');
+    assert.equal(options.signal.aborted, false);
+    const key = new URL(url).pathname.slice(1);
+    this.heads.push(key);
+    if (this.failHeads) throw new Error('Simulated unavailable object');
+    const object = this.objects.get(key);
+    if (!object) return new Response(null, { status: 404 });
+    return new Response(null, { status: 200, headers: {
+      'content-length': String(object.Body.length), 'content-type': 'image/png',
+      'x-cos-meta-sha256': createHash('sha256').update(object.Body).digest('hex'),
+    } });
   }
   getObjectUrl(parameters, callback) {
     this.signatures.push(parameters);
@@ -62,71 +62,55 @@ test('dynamic media keys stay under the fixed FearLab namespace', () => {
   assert.throws(() => mediaObjectKey(`other/${id}`), /identity/);
 });
 
-test('dual writes keep a private verified COS copy and local rollback copy', async t => {
+test('COS mode saves and rolls back locally without any cloud operation', async t => {
   const dataDir = await directory(t), cos = new FakeCos();
-  let now = 1700000000000;
-  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, now: () => now });
+  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, fetchHead: cos.fetchHead.bind(cos) });
   await storage.save({ id, bytes, mime: 'image/png' });
   assert.deepEqual(await readFile(join(dataDir, 'uploads', id)), bytes);
-  const object = cos.objects.get(mediaObjectKey(id));
-  assert.equal(object.Bucket, 'lingolift-1335262060'); assert.equal(object.Region, 'ap-guangzhou');
-  assert.equal(object.Key, `fearlab/uploads/${id}.blob`);
-  assert.equal(object.ACL, 'private'); assert.equal(object.ContentType, 'image/png');
-  assert.equal(object.ContentLength, bytes.length); assert.equal(object.ContentDisposition, 'inline');
-  assert.equal(object.Headers['x-cos-meta-sha256'], createHash('sha256').update(bytes).digest('hex'));
-  const media = { id, size: bytes.length }, first = await storage.redirect(media);
+  assert.equal(cos.objects.size, 0); assert.equal(cos.signatures.length, 0);
+  await assert.rejects(storage.save({ id, bytes: Buffer.from('replacement'), mime: 'image/png' }), /EEXIST/);
+  assert.deepEqual(await storage.read(id), bytes);
+  await storage.remove(id);
+  assert.deepEqual(await readdir(join(dataDir, 'uploads')), []);
+});
+
+test('verified replicas receive reusable five minute URLs and local rollback preserves the source', async t => {
+  const dataDir = await directory(t), cos = new FakeCos();
+  let now = 1700000000000;
+  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, fetchHead: cos.fetchHead.bind(cos), now: () => now });
+  await storage.save({ id, bytes, mime: 'image/png' });
+  cos.objects.set(mediaObjectKey(id), { Body: bytes });
+  const media = { id, size: bytes.length, mime: 'image/png' }, first = await storage.redirect(media);
   assert.equal(new URL(first).hostname, 'lingolift-1335262060.cos.ap-guangzhou.myqcloud.com');
   now += 30000;
   assert.equal(await storage.redirect(media), first);
   now += 250000;
   assert.notEqual(await storage.redirect(media), first);
-  assert.equal(cos.heads.length, 1);
+  assert.equal(cos.heads.length, 2);
+  assert.ok(cos.signatures.every(call => call.Sign && call.Expires === 300));
+  assert.ok(cos.signatures.some(call => call.Method === 'HEAD'));
   const local = await createMediaStore({ dataDir });
   assert.equal(await local.redirect(media), null);
   assert.deepEqual(await local.read(id), bytes);
   await storage.remove(id);
-  assert.equal(cos.objects.size, 0); assert.deepEqual(await readdir(join(dataDir, 'uploads')), []);
+  assert.equal(cos.objects.size, 1, 'API rollback must never issue a cloud delete');
 });
 
-test('failed and uncertain PUTs remove new local and cloud objects without deleting preexisting data', async t => {
-  const dataDir = await directory(t), cos = new FakeCos(); cos.failPutAt = 1;
-  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos });
-  await assert.rejects(storage.save({ id, bytes, mime: 'image/png' }), /unavailable/);
-  assert.equal(cos.objects.size, 0); assert.deepEqual(await readdir(join(dataDir, 'uploads')), []);
-  await storage.save({ id, bytes, mime: 'image/png' });
-  const deleted = cos.deletes.length;
-  await assert.rejects(storage.save({ id, bytes: Buffer.from('replacement'), mime: 'image/png' }), /EEXIST/);
-  assert.equal(cos.deletes.length, deleted); assert.deepEqual(await storage.read(id), bytes);
-});
-
-test('cloud absence, mismatch and outage fall back locally; COS URLs are signed for five minutes', async t => {
-  const dataDir = await directory(t), cos = new FakeCos();
-  const local = await createMediaStore({ dataDir });
-  await local.save({ id, bytes, mime: 'image/png' });
+test('absence, equal-size content conflicts and outages fall back to the local image', async t => {
+  const dataDir = await directory(t), cos = new FakeCos(), messages = [];
   let now = 1700000000000;
-  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, now: () => now });
-  const media = { id, size: bytes.length };
+  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, fetchHead: cos.fetchHead.bind(cos), now: () => now, onError: error => messages.push(error.message) });
+  await storage.save({ id, bytes, mime: 'image/png' });
+  const media = { id, size: bytes.length, mime: 'image/png' };
   assert.equal(await storage.redirect(media), null);
-  assert.deepEqual(await storage.read(id), bytes);
   now += 6000;
-  cos.objects.set(mediaObjectKey(id), { Body: Buffer.from('wrong length') });
+  cos.objects.set(mediaObjectKey(id), { Body: Buffer.alloc(bytes.length) });
   assert.equal(await storage.redirect(media), null);
   now += 6000;
   cos.objects.set(mediaObjectKey(id), { Body: bytes });
-  const url = await storage.redirect(media);
-  assert.equal(new URL(url).hostname, 'lingolift-1335262060.cos.ap-guangzhou.myqcloud.com');
-  assert.equal(cos.signatures[0].Sign, true); assert.equal(cos.signatures[0].Expires, 300);
+  assert.ok(await storage.redirect(media));
   now += 61000; cos.failHeads = true;
   assert.equal(await storage.redirect(media), null);
   assert.deepEqual(await storage.read(id), bytes);
-});
-
-test('cleanup failures are sanitized and still remove the local copy', async t => {
-  const dataDir = await directory(t), cos = new FakeCos(), messages = [];
-  cos.failPutAt = 1; cos.failDelete = true;
-  const storage = await createMediaStore({ dataDir, config: mediaConfigFromEnv(cloudEnv), cosClient: cos, onError: error => messages.push(error.message) });
-  await assert.rejects(storage.save({ id, bytes, mime: 'image/png' }), /unavailable/);
-  assert.deepEqual(await readdir(join(dataDir, 'uploads')), []);
-  assert.equal(messages.length, 1); assert.match(messages[0], /private object may remain/);
-  assert.equal(messages[0].includes(cloudEnv.COS_SECRET_KEY), false);
+  assert.ok(messages.every(message => !message.includes(cloudEnv.COS_SECRET_KEY)));
 });
