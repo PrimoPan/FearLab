@@ -13,6 +13,7 @@ export type PersonRecord = {
   researchInterest: string
   bioParagraphs: string[]
   idPhoto: string
+  idPhotoUrl?: string
   lifePhoto: string
   lifePhotoAlt: string
   storySide: PersonStorySide

@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { HomeBanner } from '../components/home/HomeBanner'
+import { LabSnapshots } from '../components/home/LabSnapshots'
 import { FocusList } from '../components/ui/FocusList'
 import { homeFocusPoints } from '../content/siteContent'
 import { reveal } from '../lib/animations'
@@ -29,7 +30,10 @@ export function HomePage() {
             </a>.
           </p>
         </div>
-        <FocusList items={homeFocusPoints} className="col-auto max-w-none" />
+        <div className="min-w-0">
+          <FocusList items={homeFocusPoints} className="col-auto max-w-none" />
+          <LabSnapshots />
+        </div>
       </motion.section>
     </div>
   )

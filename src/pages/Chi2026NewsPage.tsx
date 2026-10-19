@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { NewsCard } from '../components/news/NewsCard'
 import { NewsHero } from '../components/news/NewsHero'
 import { NewsSection } from '../components/news/NewsSection'
+import { ChiResearchRecap } from '../components/news/ChiResearchRecap'
 import { chiAcceptedPapers, chiWorkshops } from '../content/siteContent'
 import { cn } from '../lib/cn'
 
@@ -60,6 +61,7 @@ export function Chi2026NewsPage() {
           ))}
         </div>
       </NewsSection>
+      <ChiResearchRecap />
     </section>
   )
 }

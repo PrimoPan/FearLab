@@ -16,6 +16,7 @@ export type ConstructionPageContent = {
 
 export type AcceptedPaper = {
   title: string
+  href: string
   track: string
   date: string
   time: string
@@ -100,6 +101,7 @@ export const chiAcceptedPapers: readonly AcceptedPaper[] = [
   {
     title:
       'LLM-based Embodied Conversational Agent for Reducing Foreign Language Speaking Anxiety in Social VR',
+    href: 'https://doi.org/10.1145/3772318.3791068',
     track: 'Social VR',
     date: 'Tue, 14 Apr',
     time: '11:15 - 12:45',
@@ -108,6 +110,7 @@ export const chiAcceptedPapers: readonly AcceptedPaper[] = [
   {
     title:
       'Quantifying Latencies: A Conversation Analysis Approach to Human-Agent Interactions in Virtual Reality',
+    href: 'https://doi.org/10.1145/3772318.3790947',
     track: 'AI & Timing Matters',
     date: 'Mon, 13 Apr',
     time: '11:15 - 12:45',

@@ -42,6 +42,25 @@ export function createRegistrationService({ db, storage, now, jsonBody, json, au
   const timestamp = () => new Date(now()).toISOString();
   const rowById = id => db.prepare('SELECT * FROM registrations WHERE id=?').get(id);
   const people = () => db.prepare('SELECT profile FROM people_profiles JOIN users ON users.id=people_profiles.user_id WHERE users.disabled=0 ORDER BY published_at, user_id').all().map(row => JSON.parse(row.profile));
+  async function publicPeople() {
+    // Authorize first, then include a verified short-lived portrait URL in the
+    // existing directory response. This avoids a second browser/server round
+    // trip before COS can start delivering newly approved members' portraits.
+    const listed = people();
+    const resolved = await Promise.all(listed.map(async person => {
+      const match = person.idPhoto?.match(/^\/api\/media\/([a-f0-9-]{36})$/);
+      const media = match && db.prepare('SELECT * FROM uploads WHERE id=?').get(match[1]);
+      if (!media) return person;
+      try {
+        const url = await storage.redirect(media);
+        return url ? { ...person, idPhotoUrl: url } : person;
+      } catch { return person; } // Cloud outages retain the stable local fallback.
+    }));
+    // Publication may change during remote verification. Do not return a
+    // disabled or replaced profile using the earlier authorization snapshot.
+    const stillPublic = new Set(people().map(person => JSON.stringify(person)));
+    return resolved.filter((_, index) => stillPublic.has(JSON.stringify(listed[index])));
+  }
   function available(username) {
     const user = db.prepare('SELECT role,disabled FROM users WHERE username=?').get(username);
     // Disabled members can reapply; administrator identities can never be claimed.
@@ -124,7 +143,7 @@ export function createRegistrationService({ db, storage, now, jsonBody, json, au
   return {
     isPublicMedia: id => people().some(person => [person.idPhoto, person.lifePhoto].includes(`/api/media/${id}`)),
     async handle(req, res, path, method) {
-      if (path === '/api/public/people' && method === 'GET') { json(res, 200, { people: people() }); return true; }
+      if (path === '/api/public/people' && method === 'GET') { json(res, 200, { people: await publicPeople() }); return true; }
       if (path === '/api/registrations' && method === 'POST') { await submit(req, res); return true; }
       if (path === '/api/registrations' && method === 'GET') {
         admin(req);

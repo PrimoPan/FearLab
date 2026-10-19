@@ -33,8 +33,16 @@ export function PersonCard(props: PersonCardProps) {
         >
           <img
             className="h-full w-full scale-[1.02] object-cover object-top [image-orientation:from-image] transition-transform duration-[260ms] group-hover:scale-[1.06]"
-            src={props.person.idPhoto}
+            src={props.person.idPhotoUrl ?? props.person.idPhoto}
             alt={`${props.person.name} ID portrait`}
+            referrerPolicy="no-referrer"
+            onError={event => {
+              // A short-lived COS URL may expire in a long-open tab. The stable
+              // API route rechecks visibility before signing a replacement.
+              if (event.currentTarget.getAttribute('src') !== props.person.idPhoto) {
+                event.currentTarget.src = props.person.idPhoto
+              }
+            }}
           />
         </div>
         <div className="grid w-full gap-[0.38rem] px-[0.05rem] pt-[0.95rem]">

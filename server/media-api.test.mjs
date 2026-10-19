@@ -152,3 +152,52 @@ test('partial local registration failure leaves neither a registration nor its f
   assert.equal(app.db.prepare('SELECT COUNT(*) AS total FROM registration_uploads').get().total, 0);
   assert.deepEqual(await readdir(join(directory, 'uploads')), []);
 });
+
+test('public directory signs only approved portraits and retains stable local fallback URLs', async t => {
+  const ctx = await setup(t), { app, request, login } = ctx;
+  const admin = await login('primo');
+  const registration = (await request('/api/registrations', { method: 'POST', body: form('directorymember') })).body.registration;
+  const pending = (await request('/api/registrations', { auth: admin })).body.registrations.find(row => row.id === registration.id);
+  await ctx.replicate();
+  assert.deepEqual((await request('/api/public/people')).body.people, []);
+  assert.equal(ctx.calls.redirects, 0, 'pending profiles must never reach the signer');
+  assert.equal((await request(`/api/registrations/${registration.id}/review`, { method: 'POST', auth: admin, body: { version: 1, decision: 'approve', feedback: '' } })).status, 200);
+  const directory = await request('/api/public/people');
+  assert.equal(directory.headers.get('cache-control'), 'no-store');
+  const [person] = directory.body.people;
+  assert.equal(person.idPhoto, pending.profile.idPhoto, 'keep the authorization route as an expiry/outage fallback');
+  assert.equal(person.lifePhoto, pending.profile.lifePhoto, 'do not load the lifestyle photo on the directory critical path');
+  const signedPortrait = new URL(person.idPhotoUrl);
+  assert.equal(signedPortrait.hostname, 'lingolift-1335262060.cos.ap-guangzhou.myqcloud.com');
+  assert.equal(signedPortrait.pathname, `/fearlab/uploads/${person.idPhoto.split('/').pop()}.blob`);
+  assert.equal(signedPortrait.searchParams.get('q-signature'), 'test');
+  assert.equal(ctx.calls.redirects, 1);
+  assert.equal((await request('/api/public/people')).body.people[0].idPhotoUrl, person.idPhotoUrl, 'reuse a still-valid URL for browser caching');
+  app.db.prepare("UPDATE users SET disabled=1 WHERE username='directorymember'").run();
+  const before = ctx.calls.redirects;
+  assert.deepEqual((await request('/api/public/people')).body.people, []);
+  assert.equal(ctx.calls.redirects, before, 'disabled profiles must never reach the signer');
+  assert.equal((await request(person.idPhoto)).status, 404);
+  assert.ok([...ctx.remote.values()].every(object => object.ACL === 'private'));
+});
+
+test('public directory remains usable during COS failure and rechecks visibility after verification', async t => {
+  const { app, storage, request, login } = await setup(t);
+  const admin = await login('primo');
+  const registration = (await request('/api/registrations', { method: 'POST', body: form('slowdirectory') })).body.registration;
+  assert.equal((await request(`/api/registrations/${registration.id}/review`, { method: 'POST', auth: admin, body: { version: 1, decision: 'approve', feedback: '' } })).status, 200);
+  storage.redirect = async () => { throw new Error('COS unavailable'); };
+  const fallback = await request('/api/public/people');
+  assert.equal(fallback.status, 200);
+  assert.match(fallback.body.people[0].idPhoto, /^\/api\/media\//);
+  assert.equal(fallback.body.people[0].idPhotoUrl, undefined);
+
+  let finish, started;
+  const verificationStarted = new Promise(resolve => { started = resolve; });
+  storage.redirect = () => { started(); return new Promise(resolve => { finish = resolve; }); };
+  const inFlight = request('/api/public/people');
+  await verificationStarted;
+  app.db.prepare("UPDATE users SET disabled=1 WHERE username='slowdirectory'").run();
+  finish('https://lingolift-1335262060.cos.ap-guangzhou.myqcloud.com/fearlab/uploads/example.blob?q-signature=test');
+  assert.deepEqual((await inFlight).body.people, [], 'a profile disabled during verification must not leak in the response');
+});

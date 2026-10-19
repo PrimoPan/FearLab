@@ -12,6 +12,26 @@
     />
     <meta name="robots" content="noindex, nofollow" />
     <title>FEAR Lab | HKUST(GZ)</title>
+    <script>
+      // Start approved-member discovery before the application bundle is ready.
+      // Keep this request shared with React, including development StrictMode.
+      if (/^\/people\/?$/.test(window.location.pathname)) {
+        window.__fearlabPeopleRequest = fetch('/api/public/people', { credentials: 'omit' })
+          .then(function (response) { return response.ok ? response.json() : null })
+          .then(function (data) {
+            if (data && Array.isArray(data.people)) data.people.forEach(function (person) {
+              var source = person.idPhotoUrl || person.idPhoto;
+              if (typeof source === 'string') {
+                var portrait = new Image();
+                portrait.referrerPolicy = 'no-referrer';
+                portrait.src = source;
+              }
+            });
+            return data;
+          })
+          .catch(function () { return null });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
