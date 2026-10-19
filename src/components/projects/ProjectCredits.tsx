@@ -7,8 +7,8 @@ const projectTeam = [
     role: 'Project Leader',
     name: 'Dongyijie Primo Pan',
     portrait: primoPortrait,
-    width: 1272,
-    height: 1247,
+    width: 1254,
+    height: 1254,
     crop: 'object-[45%_center]',
     profile: '/people?member=dongyijie-primo-pan',
     linkLabel: 'Project leader profile'
