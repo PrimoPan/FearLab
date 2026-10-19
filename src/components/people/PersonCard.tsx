@@ -12,8 +12,9 @@ type PersonCardProps = {
 }
 
 export function PersonCard(props: PersonCardProps) {
+  // Approved members can arrive after the directory's initial reveal has finished.
   return (
-    <motion.div className="h-full" variants={reveal}>
+    <motion.div className="h-full" initial="hidden" animate="visible" variants={reveal}>
       <button
         ref={props.buttonRef}
         type="button"

@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import { PersonCard } from '../components/people/PersonCard'
 import { PeopleDirectoryHero } from '../components/people/PeopleDirectoryHero'
 import { PersonDetailSection } from '../components/people/PersonDetailSection'
 import type { PersonRecord } from '../data/people'
-import { staggerIn } from '../lib/animations'
 import { cn } from '../lib/cn'
 import { usePeopleDirectory } from '../lib/people/usePeopleDirectory'
 
@@ -68,13 +67,7 @@ export function PeoplePage() {
     <section className={cn(pageClasses, selectedPerson && 'pb-0')}>
       <PeopleDirectoryHero />
 
-      <motion.div
-        className={gridClasses}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={staggerIn}
-      >
+      <div className={gridClasses}>
         {people.map((person) => (
           <PersonCard
             key={person.slug}
@@ -86,7 +79,7 @@ export function PeoplePage() {
             }}
           />
         ))}
-      </motion.div>
+      </div>
 
       <AnimatePresence mode="wait">
         {selectedPerson ? (
