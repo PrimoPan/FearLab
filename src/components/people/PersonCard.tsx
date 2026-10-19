@@ -1,7 +1,5 @@
 import type { RefCallback } from 'react'
-import { motion } from 'framer-motion'
 import type { PersonRecord } from '../../data/people'
-import { reveal } from '../../lib/animations'
 import { cn } from '../../lib/cn'
 
 type PersonCardProps = {
@@ -12,9 +10,8 @@ type PersonCardProps = {
 }
 
 export function PersonCard(props: PersonCardProps) {
-  // Approved members can arrive after the directory's initial reveal has finished.
   return (
-    <motion.div className="h-full" initial="hidden" animate="visible" variants={reveal}>
+    <div className="h-full">
       <button
         ref={props.buttonRef}
         type="button"
@@ -57,6 +54,6 @@ export function PersonCard(props: PersonCardProps) {
           </span>
         </div>
       </button>
-    </motion.div>
+    </div>
   )
 }

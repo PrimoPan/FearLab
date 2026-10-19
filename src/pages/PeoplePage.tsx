@@ -22,13 +22,13 @@ const gridClasses = cn(
 
 export function PeoplePage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { people, peopleBySlug } = usePeopleDirectory()
+  const { people, peopleBySlug, isLoading, error, retry } = usePeopleDirectory()
   const detailRef = useRef<HTMLElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const lastSelectedSlug = useRef<string | null>(null)
 
   const selectedSlug = searchParams.get('member')
-  const selectedPerson = selectedSlug ? peopleBySlug[selectedSlug] : undefined
+  const selectedPerson = !isLoading && selectedSlug ? peopleBySlug[selectedSlug] : undefined
 
   useEffect(() => {
     if (!selectedPerson || !detailRef.current) {
@@ -41,7 +41,7 @@ export function PeoplePage() {
       detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 80)
     return () => window.clearTimeout(timeout)
-  }, [selectedPerson])
+  }, [selectedPerson?.slug])
 
   const openPerson = (person: PersonRecord) => {
     setSearchParams({ member: person.slug })
@@ -67,7 +67,11 @@ export function PeoplePage() {
     <section className={cn(pageClasses, selectedPerson && 'pb-0')}>
       <PeopleDirectoryHero />
 
-      <div className={gridClasses}>
+      {isLoading ? (
+        <div className="min-h-[32rem] py-8 text-ink-soft" role="status">
+          Loading our team…
+        </div>
+      ) : <div className={gridClasses}>
         {people.map((person) => (
           <PersonCard
             key={person.slug}
@@ -79,7 +83,16 @@ export function PeoplePage() {
             }}
           />
         ))}
-      </div>
+      </div>}
+
+      {error && !isLoading && (
+        <p role="status" className="mt-6 text-sm text-ink-soft">
+          Some team profiles could not be refreshed.{' '}
+          <button type="button" className="cursor-pointer border-0 bg-transparent p-0 text-accent underline underline-offset-4" onClick={() => void retry()}>
+            Try again
+          </button>
+        </p>
+      )}
 
       <AnimatePresence mode="wait">
         {selectedPerson ? (

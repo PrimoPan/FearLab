@@ -15,6 +15,7 @@ import { PhdProjectPage } from '../pages/PhdProjectPage'
 import { PublishedProjectPage } from '../pages/PublishedProjectPage'
 import { lazy, Suspense } from 'react'
 import { cn } from '../lib/cn'
+import { prefetchPeopleDirectory } from '../lib/people/usePeopleDirectory'
 import { detectInitialTheme, toggleTheme, type Theme } from './theme'
 
 const PortalPage = lazy(() => import('../pages/portal/PortalPage').then(module => ({ default: module.PortalPage })))
@@ -52,6 +53,10 @@ export function AppShell() {
   useEffect(() => {
     document.title = 'FEAR Lab | HKUST(GZ)'
   }, [location.pathname, location.search])
+
+  useEffect(() => {
+    if (!location.pathname.startsWith('/test')) prefetchPeopleDirectory()
+  }, [location.pathname])
 
   return (
     <main

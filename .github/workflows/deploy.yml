@@ -49,6 +49,9 @@ jobs:
       - name: Test portal API
         run: npm run test:api
 
+      - name: Test people directory loading
+        run: npm run test:people
+
       - name: Test static media migration
         run: node --test scripts/media/*.test.mjs
 
@@ -182,6 +185,7 @@ jobs:
             npm ci --prefix server --omit=dev
             npm run check
             npm run test:api
+            npm run test:people
             node --test scripts/media/*.test.mjs
             FEARLAB_IMAGE_BASE_URL="$IMAGE_BASE_URL" npm run build
           )
