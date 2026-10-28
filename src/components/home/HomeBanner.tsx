@@ -13,11 +13,11 @@ const heroClasses = cn(
 const photoClasses = cn(
   'relative order-2 m-0 overflow-hidden',
   'min-[901px]:absolute min-[901px]:inset-0 min-[901px]:-z-10',
-  'max-[900px]:aspect-[1.65]'
+  'max-[900px]:aspect-[4858/2067]'
 )
 
 const imageClasses = cn(
-  'h-full w-full object-cover object-[50%_64%]',
+  'h-full w-full object-contain object-bottom',
   'brightness-[0.82] saturate-[0.78] contrast-[1.04]',
   '[[data-theme=light]_&]:brightness-[1.02] [[data-theme=light]_&]:saturate-[0.88] [[data-theme=light]_&]:contrast-[0.98]',
   'max-[900px]:brightness-[0.94] max-[900px]:saturate-[0.88]',
@@ -50,11 +50,11 @@ export function HomeBanner() {
         <img
           className={imageClasses}
           src={teamPhoto}
-          srcSet={`${teamPhotoMobile} 960w, ${teamPhoto} 2560w`}
+          srcSet={`${teamPhotoMobile} 960w, ${teamPhoto} 4858w`}
           sizes="100vw"
-          width={2560}
-          height={1865}
-          alt="Six FEAR Lab members gathered around a table in the lab."
+          width={4858}
+          height={2067}
+          alt="Nine pixel-art characters representing the FEAR Lab team."
           fetchPriority="high"
         />
         <div

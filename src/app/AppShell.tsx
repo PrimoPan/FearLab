@@ -1,13 +1,12 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { SiteHeader } from '../components/layout/SiteHeader'
-import { constructionCopy } from '../content/siteContent'
 import { useAutoHideHeader } from '../hooks/useAutoHideHeader'
-import { ConstructionPage } from '../pages/ConstructionPage'
 import { Chi2026NewsPage } from '../pages/Chi2026NewsPage'
 import { HomePage } from '../pages/HomePage'
 import { NewsPage } from '../pages/NewsPage'
 import { PeoplePage } from '../pages/PeoplePage'
+import { ContactPage } from '../pages/ContactPage'
 import { PersonRedirectPage } from '../pages/PersonRedirectPage'
 import { PublicationsPage } from '../pages/PublicationsPage'
 import { ProjectsPage } from '../pages/ProjectsPage'
@@ -99,8 +98,9 @@ export function AppShell() {
         <Route path="/test/*" element={<Suspense fallback={<p className="px-8 py-16">Loading workspace…</p>}><PortalPage /></Suspense>} />
         <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/people" element={<PeoplePage />} />
+        <Route path="/people/recruit" element={<Navigate to="/contact" replace />} />
         <Route path="/people/:slug" element={<PersonRedirectPage />} />
-        <Route path="/contact" element={<ConstructionPage {...constructionCopy.contact} />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </main>
