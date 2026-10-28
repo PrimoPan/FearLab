@@ -1,0 +1,31 @@
+{
+  "source": "https://qqshow2000.com/?id=buqg7ooq",
+  "selector": ".share-display-container",
+  "layers": [
+    {
+      "url": "https://qqshow2000.com/assets/front-hair/%E6%A0%97%E8%89%B2%E6%96%9C%E5%88%86%E4%B8%AD%E7%9F%AD%E5%8F%91.gif",
+      "label": "栗色斜分中短发",
+      "z": 11
+    },
+    {
+      "url": "https://qqshow2000.com/assets/makeup/%E5%8A%A8%E6%BC%AB%E9%BB%91%E6%9B%9C%E7%9C%A8%E7%9C%BC.gif",
+      "label": "动漫黑曜眨眼",
+      "z": 9
+    },
+    {
+      "url": "https://qqshow2000.com/assets/outfit/%E9%BB%91%E8%89%B2%E7%9A%AE%E8%A1%A3%E7%89%9B%E4%BB%94%E8%A3%A4%E5%A5%97%E8%A3%85.gif",
+      "label": "黑色皮衣牛仔裤套装",
+      "z": 8
+    },
+    {
+      "url": "https://qqshow2000.com/assets/earrings/%E8%93%9D%E9%92%BB%E8%80%B3%E9%A5%B0.gif",
+      "label": "蓝钻耳饰",
+      "z": 12
+    },
+    {
+      "url": "https://qqshow2000.com/assets/background-decor/%E9%AD%94%E6%B3%95%E9%87%91%E5%85%89%E8%9E%BA%E6%97%8B.gif",
+      "label": "魔法金光螺旋",
+      "z": 1
+    }
+  ]
+}

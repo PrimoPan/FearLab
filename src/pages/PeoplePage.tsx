@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { PersonCard } from '../components/people/PersonCard'
 import { PeopleDirectoryHero } from '../components/people/PeopleDirectoryHero'
 import { PersonDetailSection } from '../components/people/PersonDetailSection'
@@ -66,6 +66,15 @@ export function PeoplePage() {
   return (
     <section className={cn(pageClasses, selectedPerson && 'pb-0')}>
       <PeopleDirectoryHero />
+      <section aria-labelledby="join-us-title" className="mb-10">
+        <Link to="/contact" className="group flex items-center justify-between gap-6 rounded-2xl border border-line bg-panel p-6 text-inherit no-underline transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
+          <div>
+            <h2 id="join-us-title" className="m-0 text-3xl font-medium tracking-[-0.04em] group-hover:text-accent">Join us</h2>
+            <p className="mb-0 mt-3 text-sm leading-relaxed text-ink-soft">Explore opportunities to join FEAR Lab and view our recruiting poster.</p>
+          </div>
+          <span className="text-2xl text-accent" aria-hidden="true">→</span>
+        </Link>
+      </section>
 
       {isLoading ? (
         <div className="min-h-[32rem] py-8 text-ink-soft" role="status">
