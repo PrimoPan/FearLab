@@ -4,7 +4,6 @@ import { mengxuPan } from './members/mengxuPan'
 import { mirjanaPrpa } from './members/mirjanaPrpa'
 import { primoPan } from './members/primoPan'
 import { qiyuanCheng } from './members/qiyuanCheng'
-import { xingyuGao } from './members/xingyuGao'
 import type { PersonGroup, PersonGroupKey, PersonRecord } from './types'
 
 const roleOrder: PersonGroupKey[] = ['faculty', 'phd', 'mphil', 'ra', 'intern']
@@ -23,7 +22,6 @@ const peopleCatalog: PersonRecord[] = [
   mengxuPan,
   primoPan,
   qiyuanCheng,
-  xingyuGao,
   euphieYang
 ]
 
