@@ -15,18 +15,21 @@ export function ContactPage() {
       </div>
 
       <div className={cn(projectWidth, 'order-1 py-8 min-[901px]:order-2 min-[901px]:py-14')}>
-        <p className="mb-3 mt-0 font-mono text-xs tracking-[0.14em] text-accent uppercase">MPhil opportunities · CMA / INFO</p>
+        <p className="mb-3 mt-0 font-mono text-xs tracking-[0.14em] text-accent uppercase">MPhil · PhD · Research Assistant Opportunities</p>
         <h1 id="contact-title" className="m-0 text-[clamp(2rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.04em]">Join FEAR Lab.</h1>
         <p className="mb-6 mt-5 max-w-[65ch] text-base leading-relaxed text-ink-soft">
-          Our lab welcomes MPhil students interested in Embodied AI and HCI at HKUST(GZ).
+          The Future Embodied Augmented Realities (FEAR) Lab at HKUST(GZ) welcomes{' '}
+          <strong className="font-semibold text-ink">currently enrolled Redbird MPhil students, prospective PhD students for 2027 entry, and research assistants</strong>.
+        </p>
+        <p className="mb-6 mt-0 max-w-[65ch] text-base leading-relaxed text-ink-soft">
+          Led by Dr. Mirjana Prpa, Assistant Professor in the Computational Media and Arts (CMA) Thrust, our research spans embodied, immersive and AI-driven systems for health, well-being and education; methods for understanding user experience, including micro-phenomenology; and experiential augmentation of synthetic data for human–AI collaboration.
         </p>
 
         <h2 className="mb-3 mt-7 text-xl font-medium tracking-[-0.02em]">Who we’re looking for</h2>
         <ul className="m-0 max-w-[65ch] space-y-3 pl-5 text-base leading-relaxed text-ink-soft marker:text-accent">
-          <li>A bachelor’s degree in CS, AI, or HCI, with an interest in interdisciplinary and practice-informed research across these areas.</li>
-          <li>Diligent, persistent, responsible, self-motivated critical thinkers who enjoy working in a team.</li>
-          <li>Entrepreneurial interest and commercializing research are welcomed and encouraged.</li>
-          <li>Good communication and collaboration skills.</li>
+          <li>Applicants with a bachelor’s degree in Computer Science, Artificial Intelligence, Human–Computer Interaction or related fields, interested in interdisciplinary and practice-informed research.</li>
+          <li>Self-motivated, diligent and responsible individuals with persistence, critical thinking, and strong communication and collaboration skills.</li>
+          <li>An interest in entrepreneurship and research commercialization is also welcome.</li>
         </ul>
 
         <div className="mt-8 border-t border-line pt-6">
