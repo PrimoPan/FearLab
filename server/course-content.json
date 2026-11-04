@@ -1,0 +1,225 @@
+{
+  "course": {
+    "code": "CMAA6019M (L01)",
+    "title": "Human-Centric Design for Embodied AI",
+    "heroImage": "/assets/course/hero-placeholder.svg",
+    "description": [
+      "Embodied AI is becoming increasingly intertwined with our daily activities, from self-driving cars to robots providing services and casual chats in virtual reality with embodied agents. While the applications of Embodied AI are rapidly growing, their adoption will depend on one simple question: Do they feel intelligent, and are they behaving in ways we humans expect them to? To answer this question, in this course, we will work on real-world problems, adopting human-centric design approaches, and work in teams to solve some of the most pressing challenges from both technical and creative angles.",
+      "The course is conceptualized as a collaborative, dynamic lab focused on project-based learning and interdisciplinary teams working on solving challenges that contribute to the further advancement of Embodied AI. The course will entail reading and discussing research papers, and the final delivery will include a research paper and the showcase of the projects as a public demonstration/exhibit."
+    ],
+    "titleLines": [
+      "Human-Centric",
+      "Design for",
+      "Embodied AI"
+    ]
+  },
+  "courseProjects": [
+    {
+      "team": "01",
+      "title": "Who's in Control? Handoff Cues and Trust in Human–Robot Collaboration",
+      "summary": "Exploring how handoff cues communicate control and shape trust when people and robots work together.",
+      "students": [
+        {
+          "name": "ZHU Wenhao",
+          "email": "wzhu307@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "ZOU Yi",
+          "email": "yzou906@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "Honghao Xu",
+          "email": "hxu883@connect.hkust-gz.edu.cn"
+        }
+      ]
+    },
+    {
+      "team": "02",
+      "title": "Opportunity, Not Obligation: Designing Robot Gaze to Support Entry into Group Conversations",
+      "summary": "Exploring how robot gaze can invite people into group conversations while leaving them free to choose when to join.",
+      "students": [
+        {
+          "name": "HUANG Xueyin",
+          "email": "xhuang704@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "CHEN Yanan",
+          "email": "ychen750@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "LI Yunwei",
+          "email": "yli130@connect.hkust-gz.edu.cn"
+        }
+      ]
+    },
+    {
+      "team": "03",
+      "title": "Nomi: A Patient-Controlled Desktop Companion for Chronic-Care Visit Preparation",
+      "summary": "A patient-controlled desktop companion concept that supports preparation for chronic-care visits.",
+      "students": [
+        {
+          "name": "HU Yi",
+          "email": "yhu909@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "LIAO Can",
+          "email": "cliao622@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "PAN Dongyijie",
+          "email": "dpan750@connect.hkust-gz.edu.cn"
+        }
+      ]
+    },
+    {
+      "team": "04",
+      "title": "Bi-Directional Embodied AI System for Mitigating Human-Feline Separation Anxiety",
+      "summary": "Exploring a two-way embodied AI system to support connection between people and their cats during time apart.",
+      "students": [
+        {
+          "name": "LI Hangxia",
+          "email": "hli277@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "WANG Ye",
+          "email": "ywang081@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "NIU Ruowen",
+          "email": "rniu440@connect.hkust-gz.edu.cn"
+        }
+      ]
+    },
+    {
+      "team": "05",
+      "title": "CORIA: When the Room Becomes the Body – An Embodied Light Agent That Keeps Absent Others Present",
+      "summary": "An embodied light agent concept that uses the room as its body to express the presence of someone who is away.",
+      "students": [
+        {
+          "name": "YU Tongzhou",
+          "email": "tyu432@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "LI Jiatong",
+          "email": "jli085@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "MAI Yuming",
+          "email": "ymai090@connect.hkust-gz.edu.cn"
+        }
+      ]
+    },
+    {
+      "team": "06",
+      "teamLabel": "06 & 07",
+      "aliases": [
+        "07"
+      ],
+      "title": "Learning from Teachers: Embodied AI for Classroom Facilitation",
+      "summary": "Exploring how teachers’ experiential, embodied, and tacit knowledge can inform robot facilitation and classroom orchestration.",
+      "students": [
+        {
+          "name": "CHENG Qiyuan",
+          "email": "qcheng517@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "LIU Jinming",
+          "email": "jliu380@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "LE Xu",
+          "email": "lxu760@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "PAN Mengxu",
+          "email": "mpan108@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "QIAN BAOYI",
+          "email": "bqian080@connect.hkust-gz.edu.cn"
+        },
+        {
+          "name": "YANG MANDI",
+          "email": "myang674@connect.hkust-gz.edu.cn"
+        }
+      ]
+    }
+  ],
+  "courseResearchTemplate": [
+    {
+      "id": "description",
+      "number": "01",
+      "title": "Description of the project (context)",
+      "prompts": [
+        "Introduce the project, its intended users, and the setting in which it will be used.",
+        "Describe the proposed experience and use a storyboard image sequence or video to illustrate the context, user actions, and system responses. Include image descriptions or video captions and a transcript."
+      ]
+    },
+    {
+      "id": "problem-statement",
+      "number": "02",
+      "title": "Research Problem / Problem Statement",
+      "prompts": [
+        "State the specific problem the project addresses, who experiences it, and the conditions in which it occurs.",
+        "Support the problem statement with evidence and citations. Distinguish the problem from the proposed solution."
+      ]
+    },
+    {
+      "id": "literature-review",
+      "number": "03",
+      "title": "Literature Review",
+      "prompts": [
+        "Connect the project to related research, systems, and design approaches."
+      ]
+    },
+    {
+      "id": "design-process",
+      "number": "04",
+      "title": "Design Process",
+      "prompts": [
+        "Follow the ideas, workshop activities, and design decisions on our shared FigJam board."
+      ]
+    },
+    {
+      "id": "implementation",
+      "number": "05",
+      "title": "Implementation & Development",
+      "prompts": [
+        "Document how the idea becomes a working system through cycles of building, testing, and refinement."
+      ]
+    },
+    {
+      "id": "showcase",
+      "number": "06",
+      "title": "Final Prototype Showcase",
+      "prompts": [
+        "Present the final prototype and show the experience in action."
+      ]
+    }
+  ],
+  "courseDesignBoard": {
+    "title": "CMAA6019 Workshop",
+    "url": "https://www.figma.com/board/cXUsHo5cg16SaAaTCv1l16/CMAA6019-Workshop?node-id=2104-2451&t=C3v2CYUAmFWoj5St-1",
+    "embedUrl": "https://embed.figma.com/board/cXUsHo5cg16SaAaTCv1l16/CMAA6019-Workshop?node-id=2104-2451&embed-host=fearlab"
+  },
+  "developmentStages": [
+    {
+      "id": "development-build",
+      "title": "Build",
+      "description": "Document the system architecture, components, and how the hardware and software connect.",
+      "output": "Architecture · Components · Code"
+    },
+    {
+      "id": "development-test",
+      "title": "Test",
+      "description": "Record what you tested, how the prototype behaved, and the observations or feedback you collected.",
+      "output": "Test setup · Observations · Feedback"
+    },
+    {
+      "id": "development-refine",
+      "title": "Refine",
+      "description": "Explain what changed after testing, why it changed, and what the next version needs to address.",
+      "output": "Changes · Rationale · Next steps"
+    }
+  ]
+}

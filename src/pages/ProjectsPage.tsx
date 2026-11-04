@@ -16,7 +16,7 @@ export function ProjectsPage() {
         <section className="mb-12" aria-labelledby="course-section-title">
           <Link to="/projects/course" className="group flex items-center justify-between gap-6 rounded-2xl border border-line bg-[var(--panel)] p-7 text-inherit no-underline transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent max-[700px]:p-5">
             <div>
-              <p className={cn(projectLabel, 'm-0 mb-3')}>7 student projects</p>
+              <p className={cn(projectLabel, 'm-0 mb-3')}>Student projects</p>
               <h2 id="course-section-title" className="m-0 text-3xl font-medium tracking-[-0.04em] group-hover:text-accent">Course</h2>
               <p className="mb-0 mt-3 text-sm leading-relaxed text-ink-soft">Explore the projects and meet the student teams.</p>
             </div>

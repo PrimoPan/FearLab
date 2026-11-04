@@ -12,6 +12,7 @@ import { PublicationsPage } from '../pages/PublicationsPage'
 import { ProjectsPage } from '../pages/ProjectsPage'
 import { CoursePage } from '../pages/CoursePage'
 import { CourseProjectPage } from '../pages/CourseProjectPage'
+import { CourseAccessBoundary } from '../lib/course/CourseAccessContext'
 import { PhdProjectPage } from '../pages/PhdProjectPage'
 import { PublishedProjectPage } from '../pages/PublishedProjectPage'
 import { lazy, Suspense } from 'react'
@@ -95,8 +96,10 @@ export function AppShell() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/meet-us-at-chi-2026" element={<Chi2026NewsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/projects/course" element={<CoursePage />} />
-        <Route path="/projects/course/:team" element={<CourseProjectPage />} />
+        <Route path="/projects/course" element={<CourseAccessBoundary />}>
+          <Route index element={<CoursePage />} />
+          <Route path=":team" element={<CourseProjectPage />} />
+        </Route>
         <Route path="/projects/cbt-informed-health" element={<PhdProjectPage />} />
         <Route path="/projects/research/:id" element={<PublishedProjectPage />} />
         <Route path="/test/*" element={<Suspense fallback={<p className="px-8 py-16">Loading workspace…</p>}><PortalPage /></Suspense>} />

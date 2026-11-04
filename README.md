@@ -32,7 +32,7 @@ npm run dev      # http://localhost:3001
 npm run check    # TypeScript checks
 npm run build    # production output in dist/
 npm run preview  # preview dist/ on port 3001
-npm run start:api # project studio API on 127.0.0.1:3002
+npm run start:api # studio and course API on 127.0.0.1:3002
 npm run dev:api   # API with file watching (start:api if EMFILE occurs)
 npm run test:api  # isolated API integration tests
 ```
@@ -42,6 +42,10 @@ and `npm run dev` in separate terminals. See the [studio guide](docs/project-stu
 for onboarding, author/reviewer workflow, private data storage and production setup.
 Members can enter the studio with their initial password; changing it under
 My Profile is optional.
+
+The course gallery at `/projects/course` and its project pages require the shared
+course password. Run both the API and frontend for local access. See the
+[course access guide](docs/course-access.md) for session behavior and content editing.
 
 ## Project map
 
@@ -73,6 +77,7 @@ src/
 - [Deployment and rollback](docs/deployment.md)
 - [Content intake forms](docs/fearlab-content-intake-forms.md)
 - [Project studio: local setup, review and API hosting](docs/project-studio.md)
+- [Course password access and content editing](docs/course-access.md)
 
 ## Deployment
 

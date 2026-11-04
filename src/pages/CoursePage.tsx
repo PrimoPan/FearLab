@@ -1,38 +1,28 @@
-import { Link } from 'react-router-dom'
+import { CourseHero } from '../components/projects/CourseHero'
+import { CourseProjectCard } from '../components/projects/CourseProjectCard'
 import { projectLabel, projectWidth } from '../components/projects/ProjectReveal'
-import { courseProjects } from '../content/courseProjects'
+import { useCourseContent } from '../lib/course/CourseAccessContext'
 import { cn } from '../lib/cn'
 
 export function CoursePage() {
+  const { courseProjects } = useCourseContent()
   return (
-    <section className={cn(projectWidth, 'relative z-[1] pb-20 pt-[clamp(1.6rem,4vw,2.8rem)]')} aria-labelledby="course-title">
-      <Link to="/projects" className="inline-flex min-h-11 items-center text-sm text-ink-soft no-underline hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">← Back to Projects</Link>
-      <header className="mb-12 mt-8">
-        <p className={projectLabel}>Projects / Course</p>
-        <h1 id="course-title" className="m-0 text-[clamp(3.5rem,9vw,6.1rem)] font-medium leading-[0.93] tracking-[-0.06em]">Course<span className="text-accent">.</span></h1>
-        <p className="mt-6 text-base leading-relaxed text-ink-soft">Seven student projects from the course of CMAA6019M (L01) - Human-Centric Design for Embodied AI.</p>
-      </header>
-      <ol className="m-0 list-none border-t border-line p-0">
-        {courseProjects.map((project) => (
-          <li key={project.team} className="grid grid-cols-[7rem_minmax(0,1fr)] gap-6 border-b border-line py-9 max-[700px]:grid-cols-1 max-[700px]:gap-3">
-            <p className={cn(projectLabel, 'm-0 pt-1')}>Team #{project.team}</p>
-            <article aria-labelledby={`team-${project.team}-title`} className="min-w-0">
-              <h2 id={`team-${project.team}-title`} className="m-0 max-w-[48ch] text-[clamp(1.45rem,2.5vw,2.2rem)] font-medium leading-tight tracking-[-0.035em]">
-                <Link to={`/projects/course/team-${project.team}`} className="text-inherit no-underline hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">{project.title}</Link>
-              </h2>
-              <Link to={`/projects/course/team-${project.team}`} className="mt-3 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent" aria-label={`View research template for Team ${project.team}`}>View research template →</Link>
-              <ul className="mt-7 grid list-none grid-cols-3 gap-5 p-0 max-[1050px]:grid-cols-1">
-                {project.students.map((student) => (
-                  <li key={student.email} className="min-w-0">
-                    <p className="m-0 text-sm font-medium">{student.name}</p>
-                    <a href={`mailto:${student.email}`} className="mt-1 inline-block max-w-full break-words text-sm leading-relaxed text-ink-soft underline decoration-line underline-offset-4 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">{student.email}</a>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <div className="relative z-[1] bg-site">
+      <CourseHero />
+      <div className={projectWidth}>
+        <section id="course-projects" aria-labelledby="course-projects-title" className="scroll-mt-[calc(var(--site-header-height)+2rem)] pb-20 pt-12 min-[1000px]:pb-28 min-[1000px]:pt-16">
+          <div className="mb-10 flex items-end justify-between gap-5">
+            <div>
+              <p className={cn(projectLabel, 'mb-3 mt-0')}>The project gallery</p>
+              <h2 id="course-projects-title" className="m-0 text-[clamp(2.5rem,4.5vw,4rem)] font-medium leading-none tracking-[-0.05em]">Student projects<span className="text-accent">.</span></h2>
+            </div>
+            <p className="m-0 shrink-0 pb-1 font-mono text-xs text-ink-soft">{String(courseProjects.length).padStart(2, '0')} projects</p>
+          </div>
+          <ol className="m-0 grid list-none grid-cols-1 gap-x-7 gap-y-12 p-0 min-[700px]:grid-cols-2 min-[1000px]:grid-cols-3 min-[1000px]:gap-y-16">
+            {courseProjects.map(project => <li key={project.team} className="min-w-0"><CourseProjectCard project={project} /></li>)}
+          </ol>
+        </section>
+      </div>
+    </div>
   )
 }

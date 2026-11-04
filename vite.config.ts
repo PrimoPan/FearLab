@@ -19,6 +19,9 @@ export default defineConfig(({ command }) => {
     server: {
       host: '0.0.0.0',
       port: 3001,
+      fs: {
+        deny: ['.env', '.env.*', '*.{crt,pem,key,p12,pfx,cer,der}', '.npmrc', '.yarnrc.yml', '**/.git/**', '**/server/**', '**/.local-data/**', '**/plan/**', '**/temp/**'],
+      },
       proxy: { '/api': 'http://127.0.0.1:3002' }
     },
     preview: {

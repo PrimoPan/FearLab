@@ -7,6 +7,7 @@ import { ApiError, fail, plainObject, projectData, mediaIds, readyToSubmit, vers
 import { decodeUpload } from './images.mjs';
 import { createRegistrationService } from './registrations.mjs';
 import { createMediaStore } from './media-store.mjs';
+import { createCourseAccess } from './course-access.mjs';
 
 async function jsonBody(req, max = 1024 * 1024) {
   if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) fail(415, 'Use application/json.');
@@ -76,12 +77,14 @@ export async function createApp(options = {}) {
       .map(row => ({ ...JSON.parse(row.snapshot), order: row.sort_order }));
   }
   const registrations = createRegistrationService({ db, storage, now, jsonBody, json, authenticate, getRequestIp });
+  const courseAccess = createCourseAccess({ now, secureCookies, getRequestIp, jsonBody, json, passwordHash: options.coursePasswordHash });
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
       const method = req.method;
       if (!['GET', 'POST', 'PATCH'].includes(method)) fail(405, 'Method not allowed.');
       if (method !== 'GET' && !allowedOrigins.has(req.headers.origin)) fail(403, 'Request origin is not allowed.');
+      if (await courseAccess.handle(req, res, path, method)) return;
       if (await registrations.handle(req, res, path, method)) return;
 
       if (path === '/api/auth/session' && method === 'GET') {

@@ -1,0 +1,75 @@
+{
+  "public_bundle_has_no_protected_markers": true,
+  "source_denials": [
+    {
+      "path": "/server/course-content.json",
+      "status": 403
+    },
+    {
+      "path": "/server/course-content.json?raw",
+      "status": 403
+    },
+    {
+      "path": "/server/course-password.mjs",
+      "status": 403
+    },
+    {
+      "path": "/server/course-password.mjs?raw&import",
+      "status": 403
+    },
+    {
+      "path": "/@fs/Users/vaporfish/dev/FearLab/server/course-content.json",
+      "status": 403
+    },
+    {
+      "path": "/temp/course-access/before/src/content/courseProjects.ts",
+      "status": 403
+    },
+    {
+      "path": "/plan/course-project-pages/notes.md",
+      "status": 403
+    }
+  ],
+  "layouts": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "no_overflow": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "no_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "no_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "no_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "no_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "no_overflow": true
+    }
+  ],
+  "page_errors": [],
+  "wrong_password": "denied",
+  "forged_cookie_and_storage_flags": "denied",
+  "correct_configured_password": "passed",
+  "direct_project_link": "passed",
+  "reload_and_internal_navigation": "passed",
+  "session_cookie_flags": "passed",
+  "logout_and_relock": "passed",
+  "api_unavailable": "locked",
+  "all_course_routes": "locked for anonymous visitors"
+}

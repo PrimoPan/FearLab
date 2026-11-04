@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3001",
-    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build",
+    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build && node scripts/check-course-build.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 3001",
     "check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "dev:api": "node --watch server/server.mjs",

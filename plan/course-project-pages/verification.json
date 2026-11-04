@@ -1,0 +1,151 @@
+{
+  "opening_prompts_preserved": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "literature_columns": 3,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "literature_columns": 3,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "literature_columns": 2,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "literature_columns": 2,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "literature_columns": 2,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "literature_columns": 2,
+      "flow_columns": 3,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "literature_columns": 1,
+      "flow_columns": 1,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "literature_columns": 1,
+      "flow_columns": 1,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "literature_columns": 1,
+      "flow_columns": 1,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "literature_columns": 1,
+      "flow_columns": 1,
+      "anchors_passed": true,
+      "no_horizontal_overflow": true
+    }
+  ],
+  "routes": [
+    {
+      "team": "01",
+      "students": 3,
+      "title": "Who's in Control? Handoff Cues and Trust in Human\u2013Robot Collaboration"
+    },
+    {
+      "team": "02",
+      "students": 3,
+      "title": "Opportunity, Not Obligation: Designing Robot Gaze to Support Entry into Group Conversations"
+    },
+    {
+      "team": "03",
+      "students": 3,
+      "title": "Nomi: A Patient-Controlled Desktop Companion for Chronic-Care Visit Preparation"
+    },
+    {
+      "team": "04",
+      "students": 3,
+      "title": "Bi-Directional Embodied AI System for Mitigating Human-Feline Separation Anxiety"
+    },
+    {
+      "team": "05",
+      "students": 3,
+      "title": "CORIA: When the Room Becomes the Body \u2013 An Embodied Light Agent That Keeps Absent Others Present"
+    },
+    {
+      "team": "06",
+      "students": 6,
+      "title": "Learning from Teachers: Embodied AI for Classroom Facilitation"
+    },
+    {
+      "team": "07",
+      "students": 6,
+      "title": "Learning from Teachers: Embodied AI for Classroom Facilitation"
+    }
+  ],
+  "page_errors": [],
+  "local_asset_failures": [],
+  "embed_configuration": "Correct board, node, embed host, accessible title, fullscreen, lazy loading, and direct link.",
+  "not_found_and_back_navigation": true,
+  "external_embed_observation": {
+    "responses": [
+      {
+        "url": "https://embed.figma.com/board/cXUsHo5cg16SaAaTCv1l16/CMAA6019-Workshop?node-id=2104-2451&embed-host=fearlab",
+        "status": 302
+      },
+      {
+        "url": "https://www.figma.com/embed/interstitial?embed_host=fearlab&embed_path=%2Fboard%2FcXUsHo5cg16SaAaTCv1l16%2FCMAA6019-Workshop%3Fembed-host%3Dfearlab%26kind%3Dfile%26node-id%3D2104-2451%26page-selector%3D1%26theme%3Dlight%26version%3D2%26viewer%3D1&theme=light&version=2",
+        "status": 200
+      },
+      {
+        "url": "https://www.figma.com/embed/interstitial?embed_host=fearlab&embed_path=%2Fboard%2FcXUsHo5cg16SaAaTCv1l16%2FCMAA6019-Workshop%3Fembed-host%3Dfearlab%26kind%3Dfile%26node-id%3D2104-2451%26page-selector%3D1%26theme%3Dlight%26version%3D2%26viewer%3D1&theme=light&version=2&ready=1",
+        "status": 302
+      },
+      {
+        "url": "https://www.figma.com/board/cXUsHo5cg16SaAaTCv1l16/CMAA6019-Workshop?embed-host=fearlab&kind=file&node-id=2104-2451&page-selector=1&theme=light&version=2&viewer=1",
+        "status": 403
+      }
+    ],
+    "failures": []
+  },
+  "embed_limit": "Correct iframe and direct board link implemented. Figma viewer returned a CloudFront 403 Request blocked in live Chromium; board content could not be verified.",
+  "typescript_check": "passed on Node 22.23.1",
+  "production_build": "passed on Node 22.23.1; large-chunk advisory remains",
+  "git_diff_check": "passed"
+}
