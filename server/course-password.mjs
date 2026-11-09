@@ -1,0 +1,2 @@
+// Server-only verifier for the configured shared course password.
+export const defaultCoursePasswordHash = '37f9885112ec235ae0d72845b75fb293:d208191a319a67b52ad3769efaf579db3cfc56517ec3e7dcfad21d3af2ede006005289161275476568f27c8acb62b4de5f0740494205159a3c53ded8dfa4903e';

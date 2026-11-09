@@ -1,0 +1,118 @@
+{
+  "layouts": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "article_width": 1240,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "article_width": 1240,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "article_width": 944,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "article_width": 944,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "article_width": 706.5,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "article_width": 706.5,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "article_width": 358,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "article_width": 358,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "article_width": 288,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "light",
+      "article_width": 288,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "theme": "dark",
+      "article_width": 776.5,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "theme": "light",
+      "article_width": 776.5,
+      "full_width": true,
+      "menu_in_viewport": true,
+      "keyboard_and_dismissal": true
+    }
+  ],
+  "page_errors": [],
+  "all_eight_section_links": "passed",
+  "all_project_routes": "passed",
+  "typescript_check": "passed on Node 22.23.1",
+  "production_build": "passed on Node 22.23.1",
+  "git_diff_check": "passed"
+}

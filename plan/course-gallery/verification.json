@@ -1,0 +1,264 @@
+{
+  "layouts": [
+    {
+      "theme": "dark",
+      "width": 320,
+      "columns": 1,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "columns": 1,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "columns": 2,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "dark",
+      "width": 1024,
+      "columns": 3,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "columns": 3,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "columns": 1,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "columns": 1,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "columns": 2,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "light",
+      "width": 1024,
+      "columns": 3,
+      "no_overflow": true,
+      "three_line_summaries": true
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "columns": 3,
+      "no_overflow": true,
+      "three_line_summaries": true
+    }
+  ],
+  "project_routes": [
+    {
+      "path": "/projects/course/team-01",
+      "title": "Who's in Control? Handoff Cues and Trust in Human\u2013Robot Collaboration",
+      "students": 3
+    },
+    {
+      "path": "/projects/course/team-02",
+      "title": "Opportunity, Not Obligation: Designing Robot Gaze to Support Entry into Group Conversations",
+      "students": 3
+    },
+    {
+      "path": "/projects/course/team-03",
+      "title": "Nomi: A Patient-Controlled Desktop Companion for Chronic-Care Visit Preparation",
+      "students": 3
+    },
+    {
+      "path": "/projects/course/team-04",
+      "title": "Bi-Directional Embodied AI System for Mitigating Human-Feline Separation Anxiety",
+      "students": 3
+    },
+    {
+      "path": "/projects/course/team-05",
+      "title": "CORIA: When the Room Becomes the Body \u2013 An Embodied Light Agent That Keeps Absent Others Present",
+      "students": 3
+    },
+    {
+      "path": "/projects/course/team-06",
+      "title": "Learning from Teachers: Embodied AI for Classroom Facilitation",
+      "students": 6
+    },
+    {
+      "path": "/projects/course/team-07",
+      "title": "Learning from Teachers: Embodied AI for Classroom Facilitation",
+      "students": 6
+    }
+  ],
+  "smoke_routes": [
+    {
+      "path": "/",
+      "width": 1440,
+      "title": "FEAR Lab."
+    },
+    {
+      "path": "/news",
+      "width": 1440,
+      "title": "News."
+    },
+    {
+      "path": "/publications",
+      "width": 1440,
+      "title": "Publications"
+    },
+    {
+      "path": "/people",
+      "width": 1440,
+      "title": "THE FEARless Team."
+    },
+    {
+      "path": "/projects",
+      "width": 1440,
+      "title": "Projects."
+    },
+    {
+      "path": "/contact",
+      "width": 1440,
+      "title": "Contact \u2014 Join us"
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "title": "FEAR Lab."
+    },
+    {
+      "path": "/news",
+      "width": 390,
+      "title": "News."
+    },
+    {
+      "path": "/publications",
+      "width": 390,
+      "title": "Publications"
+    },
+    {
+      "path": "/people",
+      "width": 390,
+      "title": "THE FEARless Team."
+    },
+    {
+      "path": "/projects",
+      "width": 390,
+      "title": "Projects."
+    },
+    {
+      "path": "/contact",
+      "width": 390,
+      "title": "Contact \u2014 Join us"
+    }
+  ],
+  "page_errors": [],
+  "failed_assets": [],
+  "optional_api_responses": [
+    {
+      "path": "/api/public/people",
+      "status": 502
+    },
+    {
+      "path": "/api/public/projects",
+      "status": 502
+    }
+  ],
+  "all_21_students_preserved": true,
+  "keyboard_card_and_return_navigation": true,
+  "final_hero_typography_rechecked": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "people_profile_open_and_close": [
+    1440,
+    390
+  ],
+  "optional_api_note": "The separate local API was not running. Existing static fallbacks were used for unrelated People and Projects route checks.",
+  "projects_landing_count_and_navigation": "passed",
+  "typescript_check": "passed on Node 22.23.1",
+  "production_build": "passed on Node 22.23.1; existing >500 kB chunk-size advisory",
+  "git_diff_check": "passed",
+  "merged_title_and_about_checks": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "description_in_hero": true,
+      "no_overflow": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "description_in_hero": true,
+      "no_overflow": true
+    }
+  ]
+}

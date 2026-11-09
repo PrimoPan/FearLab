@@ -13,6 +13,16 @@ export function ProjectsPage() {
           <h1 id="projects-title" className="m-0 text-[clamp(3.5rem,9vw,6.1rem)] font-medium leading-[0.93] tracking-[-0.06em]">Projects<span className="text-accent">.</span></h1>
           <p className="m-0 max-w-[32ch] text-base leading-relaxed text-ink-soft">Exploring human experience through embodied and intelligent technologies.</p>
         </header>
+        <section className="mb-12" aria-labelledby="course-section-title">
+          <Link to="/projects/course" className="group flex items-center justify-between gap-6 rounded-2xl border border-line bg-[var(--panel)] p-7 text-inherit no-underline transition-colors hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent max-[700px]:p-5">
+            <div>
+              <p className={cn(projectLabel, 'm-0 mb-3')}>Student projects</p>
+              <h2 id="course-section-title" className="m-0 text-3xl font-medium tracking-[-0.04em] group-hover:text-accent">Course</h2>
+              <p className="mb-0 mt-3 text-sm leading-relaxed text-ink-soft">Explore the projects and meet the student teams.</p>
+            </div>
+            <span className="text-2xl text-accent" aria-hidden="true">→</span>
+          </Link>
+        </section>
         <ul className="m-0 list-none border-t border-line p-0">
           <li>
             <Link

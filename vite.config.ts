@@ -6,6 +6,8 @@ import { imageBaseUrlFromEnvironment, imageMime } from './scripts/media/image-as
 export default defineConfig(({ command }) => {
   const imageBase = command === 'build' ? imageBaseUrlFromEnvironment() : undefined
 
+  const projectDir = decodeURIComponent(new URL('.', import.meta.url).pathname).replace(/^\/(?=[A-Za-z]:)/, '')
+
   return {
     plugins: [tailwindcss(), react()],
     build: imageBase ? {
@@ -19,6 +21,13 @@ export default defineConfig(({ command }) => {
     server: {
       host: '0.0.0.0',
       port: 3001,
+      fs: {
+        deny: [
+          '.env', '.env.*', '*.{crt,pem,key,p12,pfx,cer,der}', '.npmrc', '.yarnrc.yml',
+          '**/.git/**', '**/server/**', '**/.local-data/**', '**/plan/**', '**/temp/**',
+          ...['tmp', 'output', 'scripts-local'].map(dir => projectDir + dir + '/**')
+        ],
+      },
       proxy: { '/api': 'http://127.0.0.1:3002' }
     },
     preview: {
