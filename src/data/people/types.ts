@@ -20,6 +20,7 @@ export type PersonRecord = {
   storySide: PersonStorySide
   photoPositionDesktop: string
   photoPositionMobile: string
+  desktopLayout?: 'overlay' | 'split'
   desktopPanelShift?: string
   photoContain?: boolean
   photoScaleStartDesktop?: number

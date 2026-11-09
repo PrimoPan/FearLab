@@ -18,7 +18,8 @@ type PersonDetailSectionProps = {
 
 export function PersonDetailSection(props: PersonDetailSectionProps) {
   const storyRef = useRef<HTMLElement | null>(null)
-  const isMobile = useMediaQuery('(max-width: 700px)')
+  const isMobile = useMediaQuery('(width < 700px)')
+  const splitDesktop = props.person.desktopLayout === 'split' && !isMobile
 
   const photoScaleStart = isMobile
     ? props.person.photoScaleStartMobile ?? props.person.photoScaleStart ?? 1
@@ -64,30 +65,41 @@ export function PersonDetailSection(props: PersonDetailSectionProps) {
       }}
       transition={{ duration: 0.62, ease: easeCurve }}
     >
-      <section className={cn(
-        'relative isolate grid h-[calc(100svh-var(--site-header-height))] min-h-[calc(100svh-var(--site-header-height))] bg-[color-mix(in_srgb,var(--bg-layer)_42%,transparent)] max-[700px]:min-h-[calc(100svh-6.8rem)] max-[700px]:grid-rows-[auto_minmax(0,1fr)]',
-        props.person.mobilePhotoAspectRatio && 'max-[700px]:h-auto max-[700px]:min-h-0 max-[700px]:grid-rows-[auto_auto]'
-      )}>
-        <div
-          className={cn(
-            'relative z-[1] mx-auto flex h-full min-h-0 items-stretch pt-[clamp(1rem,2.4vw,1.8rem)] [grid-area:1/1]',
-            'w-[min(var(--page-max),calc(100%_-_(var(--gutter)_*_2)))]',
-            props.person.storySide === 'left' ? 'justify-start' : 'justify-end',
-            'max-[900px]:w-[calc(100%_-_(var(--gutter)_*_2))]',
-            'max-[700px]:block max-[700px]:h-full max-[700px]:min-h-0 max-[700px]:justify-start max-[700px]:pt-4 max-[700px]:pb-[0.8rem] max-[700px]:[grid-area:auto]'
-          )}
-        >
+      {splitDesktop ? (
+        <section className="mx-auto grid min-h-[calc(100svh-var(--site-header-height))] w-[min(var(--page-max),calc(100%_-_(var(--gutter)_*_2)))] grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-center gap-[clamp(1rem,3vw,3rem)] py-[clamp(1.5rem,4vw,3.5rem)]">
           <PersonDetailPanel person={props.person} onClose={props.onClose} />
-          <PersonDetailMobileIntro person={props.person} onScrollToStory={scrollToStory} />
-        </div>
+          <img
+            src={props.person.lifePhoto}
+            alt={props.person.lifePhotoAlt}
+            className="aspect-[4/5] w-full rounded-[1.4rem] object-cover [object-position:var(--person-photo-position)] min-[1100px]:aspect-[4/3]"
+          />
+        </section>
+      ) : (
+        <section className={cn(
+          'relative isolate grid h-[calc(100svh-var(--site-header-height))] min-h-[calc(100svh-var(--site-header-height))] bg-[color-mix(in_srgb,var(--bg-layer)_42%,transparent)] max-[700px]:min-h-[calc(100svh-6.8rem)] max-[700px]:grid-rows-[auto_minmax(0,1fr)]',
+          props.person.mobilePhotoAspectRatio && 'max-[700px]:h-auto max-[700px]:min-h-0 max-[700px]:grid-rows-[auto_auto]'
+        )}>
+          <div
+            className={cn(
+              'relative z-[1] mx-auto flex h-full min-h-0 items-stretch pt-[clamp(1rem,2.4vw,1.8rem)] [grid-area:1/1]',
+              'w-[min(var(--page-max),calc(100%_-_(var(--gutter)_*_2)))]',
+              props.person.storySide === 'left' ? 'justify-start' : 'justify-end',
+              'max-[900px]:w-[calc(100%_-_(var(--gutter)_*_2))]',
+              'max-[700px]:block max-[700px]:h-full max-[700px]:min-h-0 max-[700px]:justify-start max-[700px]:pt-4 max-[700px]:pb-[0.8rem] max-[700px]:[grid-area:auto]'
+            )}
+          >
+            <PersonDetailPanel person={props.person} onClose={props.onClose} />
+            <PersonDetailMobileIntro person={props.person} onScrollToStory={scrollToStory} />
+          </div>
 
-        <PersonStagePoster
-          person={props.person}
-          photoSrc={isMobile && props.person.lifePhotoMobile ? props.person.lifePhotoMobile : props.person.lifePhoto}
-          photoScaleStart={photoScaleStart}
-          photoScaleEnd={photoScaleEnd}
-        />
-      </section>
+          <PersonStagePoster
+            person={props.person}
+            photoSrc={isMobile && props.person.lifePhotoMobile ? props.person.lifePhotoMobile : props.person.lifePhoto}
+            photoScaleStart={photoScaleStart}
+            photoScaleEnd={photoScaleEnd}
+          />
+        </section>
+      )}
 
       <motion.section
         ref={storyRef}

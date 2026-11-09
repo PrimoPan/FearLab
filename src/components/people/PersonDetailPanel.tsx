@@ -14,7 +14,10 @@ type PersonDetailPanelProps = {
 export function PersonDetailPanel(props: PersonDetailPanelProps) {
   return (
     <motion.div
-      className="grid h-full min-h-0 w-[min(var(--person-panel-width,31rem),100%)] grid-rows-[auto_minmax(0,1fr)_auto] gap-[0.78rem] overflow-hidden [transform:translateX(var(--person-panel-shift,0px))] max-[700px]:hidden"
+      className={cn(
+        'grid h-full min-h-0 w-[min(var(--person-panel-width,31rem),100%)] grid-rows-[auto_minmax(0,1fr)_auto] gap-[0.78rem] overflow-hidden [transform:translateX(var(--person-panel-shift,0px))] max-[700px]:hidden',
+        props.person.desktopLayout === 'split' && 'h-auto w-full grid-rows-[auto_auto_auto] overflow-visible'
+      )}
       initial="hidden"
       animate="visible"
       variants={staggerIn}

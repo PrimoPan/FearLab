@@ -19,12 +19,10 @@ export const jiashengKong: PersonRecord = {
   lifePhotoMobile: jiashengLifeMobile,
   lifePhotoAlt: 'Jiasheng Kong adjusting a graduation cap in a classroom.',
   storySide: 'left',
-  desktopPanelWidth: 'clamp(19rem, 37vw, 31rem)',
-  desktopCopyWidth: '29rem',
-  photoPositionDesktop: '28% 0%',
+  desktopLayout: 'split',
+  photoPositionDesktop: '54% 0%',
   photoPositionMobile: '54% 0%',
   mobilePhotoAspectRatio: '4 / 3',
-  scrollableDesktopDetails: true,
   photoBrightness: 1.16,
   photoMotion: false
 }
