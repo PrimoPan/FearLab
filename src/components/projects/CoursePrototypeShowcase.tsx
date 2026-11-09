@@ -1,3 +1,4 @@
+import heroPlaceholder from '../../../assets/Course/hero-placeholder.svg'
 import { projectLabel } from './ProjectReveal'
 import { cn } from '../../lib/cn'
 
@@ -6,7 +7,7 @@ export function CoursePrototypeShowcase() {
     <>
       <figure className="m-0">
         <div className="relative flex aspect-video min-h-60 items-center justify-center overflow-hidden rounded-xl border border-dashed border-line bg-panel px-6 py-10 text-center">
-          <img src="/assets/course/hero-placeholder.svg" width={1920} height={1080} alt="" loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50" />
+          <img src={heroPlaceholder} width={1920} height={1080} alt="" loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50" />
           <div className="relative">
             <p className={cn(projectLabel, 'mb-4 mt-0')}>Final prototype</p>
             <h3 className="m-0 text-[clamp(1.5rem,3vw,2.5rem)] font-medium tracking-[-0.04em]">The experience in action.</h3>

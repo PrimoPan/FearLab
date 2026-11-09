@@ -2,7 +2,6 @@
   "course": {
     "code": "CMAA6019M (L01)",
     "title": "Human-Centric Design for Embodied AI",
-    "heroImage": "/assets/course/hero-placeholder.svg",
     "description": [
       "Embodied AI is becoming increasingly intertwined with our daily activities, from self-driving cars to robots providing services and casual chats in virtual reality with embodied agents. While the applications of Embodied AI are rapidly growing, their adoption will depend on one simple question: Do they feel intelligent, and are they behaving in ways we humans expect them to? To answer this question, in this course, we will work on real-world problems, adopting human-centric design approaches, and work in teams to solve some of the most pressing challenges from both technical and creative angles.",
       "The course is conceptualized as a collaborative, dynamic lab focused on project-based learning and interdisciplinary teams working on solving challenges that contribute to the further advancement of Embodied AI. The course will entail reading and discussing research papers, and the final delivery will include a research paper and the showcase of the projects as a public demonstration/exhibit."

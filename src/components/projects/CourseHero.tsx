@@ -1,3 +1,4 @@
+import heroPlaceholder from '../../../assets/Course/hero-placeholder.svg'
 import { CourseLockButton } from './CourseLockButton'
 import { Link } from 'react-router-dom'
 import { useCourseContent } from '../../lib/course/CourseAccessContext'
@@ -8,7 +9,7 @@ export function CourseHero() {
   const { course } = useCourseContent()
   return (
     <header className="relative isolate flex min-h-[calc(100svh-var(--site-header-height))] flex-col overflow-hidden border-b border-line bg-site-layer" aria-labelledby="course-title">
-      <img src={course.heroImage} alt="" width={1920} height={1080} fetchPriority="high" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover" />
+      <img src={course.heroImage ?? heroPlaceholder} alt="" width={1920} height={1080} fetchPriority="high" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover" />
       <div className={cn(projectWidth, 'flex items-center justify-between gap-5 pt-5')}>
         <Link to="/projects" className="inline-flex min-h-11 items-center gap-3 text-sm text-ink-soft no-underline hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
           <span aria-hidden="true">←</span> All projects

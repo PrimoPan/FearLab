@@ -1,3 +1,4 @@
+import teaserPlaceholder from '../../../assets/Course/teaser-placeholder.svg'
 import { Link } from 'react-router-dom'
 import type { CourseProject } from '../../content/courseProjects'
 import { cn } from '../../lib/cn'
@@ -8,7 +9,7 @@ export function CourseProjectCard({ project }: { project: CourseProject }) {
     <article className="h-full" aria-labelledby={`team-${project.team}-title`}>
       <Link to={`/projects/course/team-${project.team}`} aria-labelledby={`team-${project.team}-title`} className="group block h-full text-inherit no-underline focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-accent">
         <figure className="relative m-0 aspect-[8/5] overflow-hidden border border-line bg-panel transition-colors duration-200 group-hover:border-accent">
-          <img src={project.teaser?.src ?? '/assets/course/teaser-placeholder.svg'} alt={project.teaser?.alt ?? ''} width={800} height={500} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025] motion-reduce:transform-none" />
+          <img src={project.teaser?.src ?? teaserPlaceholder} alt={project.teaser?.alt ?? ''} width={800} height={500} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025] motion-reduce:transform-none" />
           {!project.teaser && <figcaption className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3 font-mono text-[0.6rem] tracking-[0.12em] text-ink-soft uppercase"><span>Teaser image</span><span>Forthcoming</span></figcaption>}
           <span aria-hidden="true" className="absolute left-5 top-4 font-mono text-sm text-ink-soft">{project.teamLabel ?? project.team}</span>
           <span aria-hidden="true" className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full border border-line bg-site text-lg text-ink transition-colors group-hover:bg-accent group-hover:text-site">↗</span>
