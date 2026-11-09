@@ -15,6 +15,7 @@ export type PersonRecord = {
   idPhoto: string
   idPhotoUrl?: string
   lifePhoto: string
+  lifePhotoMobile?: string
   lifePhotoAlt: string
   storySide: PersonStorySide
   photoPositionDesktop: string

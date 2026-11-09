@@ -83,6 +83,7 @@ export function PersonDetailSection(props: PersonDetailSectionProps) {
 
         <PersonStagePoster
           person={props.person}
+          photoSrc={isMobile && props.person.lifePhotoMobile ? props.person.lifePhotoMobile : props.person.lifePhoto}
           photoScaleStart={photoScaleStart}
           photoScaleEnd={photoScaleEnd}
         />

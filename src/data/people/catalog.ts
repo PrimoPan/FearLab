@@ -1,5 +1,6 @@
 import { euphieYang } from './members/euphieYang'
 import { hongniYe } from './members/hongniYe'
+import { jiashengKong } from './members/jiashengKong'
 import { mengxuPan } from './members/mengxuPan'
 import { mirjanaPrpa } from './members/mirjanaPrpa'
 import { primoPan } from './members/primoPan'
@@ -22,6 +23,7 @@ const peopleCatalog: PersonRecord[] = [
   mengxuPan,
   primoPan,
   qiyuanCheng,
+  jiashengKong,
   euphieYang
 ]
 

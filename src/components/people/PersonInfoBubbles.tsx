@@ -24,6 +24,7 @@ const paragraphClasses =
   'm-0 text-[0.98rem] leading-[1.72] text-[color-mix(in_srgb,var(--text)_94%,transparent)]'
 
 export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
+  const hasContactDetails = props.person.emails.length > 0 || Boolean(props.person.website)
   const introduction = (
     <motion.div
       variants={reveal}
@@ -46,7 +47,7 @@ export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
   return (
     <>
       {props.person.introductionFirst ? introduction : null}
-      {props.person.emails.length > 0 || props.person.website ? (
+      {hasContactDetails ? (
         <motion.div variants={reveal} className={bubbleClasses}>
           <span className={labelClasses}>Email</span>
           <div className="grid gap-[0.35rem]">
@@ -74,7 +75,7 @@ export function PersonInfoBubbles(props: PersonInfoBubblesProps) {
         </motion.div>
       ) : null}
 
-      <motion.div variants={reveal} className={bubbleClasses}>
+      <motion.div variants={reveal} className={cn(bubbleClasses, !hasContactDetails && 'col-span-full')}>
         <span className={labelClasses}>Research Interest</span>
         <p className={paragraphClasses}>{props.person.researchInterest}</p>
       </motion.div>

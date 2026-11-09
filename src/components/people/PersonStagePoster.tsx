@@ -4,6 +4,7 @@ import { cn } from '../../lib/cn'
 
 type PersonStagePosterProps = {
   person: PersonRecord
+  photoSrc: string
   photoScaleStart: number
   photoScaleEnd: number
 }
@@ -19,7 +20,7 @@ export function PersonStagePoster(props: PersonStagePosterProps) {
       {props.person.photoContain ? (
         <motion.img
           className="absolute -inset-[6%] h-[112%] w-[112%] object-cover [filter:blur(26px)_saturate(0.88)_brightness(var(--person-backdrop-brightness,0.9))] [object-position:var(--person-photo-position)] [will-change:transform] opacity-[0.68]"
-          src={props.person.lifePhoto}
+          src={props.photoSrc}
           alt=""
           aria-hidden="true"
           initial={{ scale: 1.04, y: 10 }}
@@ -40,7 +41,7 @@ export function PersonStagePoster(props: PersonStagePosterProps) {
           props.person.photoContain &&
             'inset-0 h-full w-full object-contain [filter:brightness(var(--person-photo-brightness,1.05))_drop-shadow(0_28px_42px_color-mix(in_srgb,var(--bg)_28%,transparent))]'
         )}
-        src={props.person.lifePhoto}
+        src={props.photoSrc}
         alt={props.person.lifePhotoAlt}
         initial={{ scale: props.photoScaleStart, y: photoMotion ? 12 : 0 }}
         animate={photoMotion
